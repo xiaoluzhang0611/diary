@@ -233,14 +233,14 @@ body{
 </head>
 <body>
 
-<!-- ===== 加载页 ===== -->
-<div class="loading-page" id="loadingPage">
+<!-- ===== 加载页（默认隐藏） ===== -->
+<div class="loading-page" id="loadingPage" style="display:none">
   <div class="loading-spinner"></div>
   <div style="color:var(--text-secondary);font-size:14px">正在连接云端...</div>
 </div>
 
-<!-- ===== 登录/注册页 ===== -->
-<div class="auth-page" id="authPage" style="display:none">
+<!-- ===== 登录/注册页（默认显示） ===== -->
+<div class="auth-page" id="authPage">
   <div class="auth-card">
     <div class="auth-title">📖</div>
     <h2 id="authTitle">设置访问密码</h2>
@@ -297,19 +297,41 @@ body{
   </div>
 </div>
 
-<!-- Supabase SDK -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-// ==================== Supabase 初始化 ====================
-const SUPABASE_URL = 'https://rebucixojhdfejnzyoiz.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_lC7n3KoEAMt-EtQKWmtH1A_GxpekKIN';
-let supabase = null;
+// ==================== Supabase 直连 API（无需外部SDK） ====================
+const SB_URL = 'https://rebucixojhdfejnzyoiz.supabase.co';
+const SB_KEY = 'sb_publishable_lC7n3KoEAMt-EtQKWmtH1A_GxpekKIN';
+const SB_HEADERS = {
+  'apikey': SB_KEY,
+  'Authorization': 'Bearer ' + SB_KEY,
+  'Content-Type': 'application/json'
+};
 let isLoggedIn = false;
 
-function initSupabase() {
-  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  // 立即显示授权页，不用等待
-  showAuthPage();
+// 通用 REST 请求
+async function sbGet(table, query = '') {
+  const url = `${SB_URL}/rest/v1/${table}?${query}`;
+  const r = await fetch(url, { headers: SB_HEADERS });
+  if (!r.ok) throw new Error(r.status);
+  return r.json();
+}
+
+async function sbPost(table, body) {
+  const r = await fetch(`${SB_URL}/rest/v1/${table}`, {
+    method: 'POST',
+    headers: { ...SB_HEADERS, 'Prefer': 'return=representation' },
+    body: JSON.stringify(body)
+  });
+  if (!r.ok) throw new Error(r.status);
+  return r.json();
+}
+
+async function sbDelete(table, query) {
+  const r = await fetch(`${SB_URL}/rest/v1/${table}?${query}`, {
+    method: 'DELETE',
+    headers: SB_HEADERS
+  });
+  if (!r.ok) throw new Error(r.status);
 }
 
 // ==================== 密码加密（SHA-256） ====================
@@ -326,12 +348,8 @@ let isFirstTimeSetup = true;
 async function checkIfSetup() {
   const authBtn = document.getElementById('authBtn');
   try {
-    const { data, error } = await supabase
-      .from('settings')
-      .select('value')
-      .eq('key', 'master_password')
-      .maybeSingle();
-    if (data && data.value) {
+    const data = await sbGet('settings', 'select=value&key=eq.master_password');
+    if (data && data.length > 0 && data[0].value) {
       isFirstTimeSetup = false;
       document.getElementById('authTitle').textContent = '输入密码';
       document.getElementById('authSubtitle').textContent = '请输入你的访问密码';
@@ -408,24 +426,15 @@ document.getElementById('authBtn').addEventListener('click', async () => {
       }
 
       // 保存密码哈希到 Supabase
-      const { error } = await supabase
-        .from('settings')
-        .upsert({ key: 'master_password', value: pwdHash });
-
-      if (error) throw error;
+      await sbPost('settings', { key: 'master_password', value: pwdHash });
 
       isLoggedIn = true;
       showToast('✅ 密码已设置，日记本已就绪', 'success');
       showMainApp();
     } else {
       // 验证密码
-      const { data, error } = await supabase
-        .from('settings')
-        .select('value')
-        .eq('key', 'master_password')
-        .maybeSingle();
-
-      if (!error && data && data.value === pwdHash) {
+      const data = await sbGet('settings', 'select=value&key=eq.master_password');
+      if (data && data.length > 0 && data[0].value === pwdHash) {
         isLoggedIn = true;
         showMainApp();
       } else {
@@ -566,35 +575,20 @@ function initDiaryApp() {
 
 // ==================== 云数据库操作 ====================
 async function cloudAddEntry(entry) {
-  const { data, error } = await supabase.from('entries').insert(entry).select('id').single();
-  if (error) throw error;
-  return data.id;
+  const data = await sbPost('entries', entry);
+  return data[0].id;
 }
 
 async function cloudGetAllEntries() {
-  const { data, error } = await supabase
-    .from('entries')
-    .select('*')
-    .order('id', { ascending: false })
-    .limit(1000);
-  if (error) throw error;
-  return data || [];
+  return await sbGet('entries', 'select=*&order=id.desc&limit=1000');
 }
 
 async function cloudGetEntriesByDate(dateStr) {
-  const { data, error } = await supabase
-    .from('entries')
-    .select('*')
-    .eq('date', dateStr)
-    .order('id', { ascending: true })
-    .limit(500);
-  if (error) throw error;
-  return data || [];
+  return await sbGet('entries', `select=*&date=eq.${encodeURIComponent(dateStr)}&order=id.asc&limit=500`);
 }
 
 async function cloudDeleteEntry(entryId) {
-  const { error } = await supabase.from('entries').delete().eq('id', entryId);
-  if (error) throw error;
+  await sbDelete('entries', `id=eq.${entryId}`);
 }
 
 // ==================== 工具函数 ====================
@@ -969,15 +963,8 @@ async function refreshView() {
 // ==================== 启动 ====================
 window.generateTodaySummary = generateTodaySummary;
 
-(async () => {
-  try {
-    initSupabase();
-  } catch (err) {
-    console.error('初始化失败:', err);
-    document.getElementById('loadingPage').innerHTML =
-      '<div style="text-align:center;padding:20px"><p>⚠️ 连接云端失败</p><p style="font-size:13px;color:var(--text-light)">请检查网络后刷新页面</p></div>';
-  }
-})();
+// 无需外部SDK，页面秒开！
+showAuthPage();
 </script>
 </body>
 </html>
