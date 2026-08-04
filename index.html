@@ -882,12 +882,10 @@ async function renderSummary() {
   });
 
   const todaySummary = summaries.find(s => s.date === getTodayStr());
-  if (!todaySummary) {
-    html += `<div class="generate-area">
-      <button class="btn btn-primary generate-btn" onclick="window.generateTodaySummary()">✨ 生成今日日记总结</button>
-      <div class="auto-info">💡 每晚 23:30 会自动为你生成今日总结</div>
-    </div>`;
-  }
+  html += `<div class="generate-area">
+    <button class="btn btn-primary generate-btn" onclick="window.generateTodaySummary()">${todaySummary ? '🔄 重新生成今日总结' : '✨ 生成今日日记总结'}</button>
+    <div class="auto-info">💡 发布新内容后点此更新总结 · 每晚 23:30 也会自动生成</div>
+  </div>`;
 
   summaryContent.innerHTML = html;
 }
