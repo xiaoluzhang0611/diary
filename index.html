@@ -308,6 +308,7 @@ let isLoggedIn = false;
 
 function initSupabase() {
   supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  // 立即显示授权页，不用等待
   showAuthPage();
 }
 
@@ -323,6 +324,7 @@ async function sha256(message) {
 let isFirstTimeSetup = true;
 
 async function checkIfSetup() {
+  const authBtn = document.getElementById('authBtn');
   try {
     const { data, error } = await supabase
       .from('settings')
@@ -350,6 +352,7 @@ async function checkIfSetup() {
     document.getElementById('authBtn').textContent = '设置密码';
     document.getElementById('pwdConfirmInput').style.display = 'block';
   }
+  authBtn.disabled = false;
 }
 
 function showAuthPage() {
@@ -360,6 +363,13 @@ function showAuthPage() {
   document.getElementById('authError').textContent = '';
   document.getElementById('pwdInput').value = '';
   document.getElementById('pwdConfirmInput').value = '';
+  // 先显示默认状态（首次设置），后台检查是否已有密码
+  document.getElementById('authTitle').textContent = '设置访问密码';
+  document.getElementById('authSubtitle').textContent = '首次使用，请设置一个密码保护你的日记';
+  document.getElementById('authBtn').textContent = '连接中...';
+  document.getElementById('authBtn').disabled = true;
+  document.getElementById('pwdConfirmInput').style.display = 'block';
+  // 后台检查
   checkIfSetup();
 }
 
