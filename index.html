@@ -387,8 +387,33 @@ function showAuthPage() {
   document.getElementById('authBtn').textContent = '连接中...';
   document.getElementById('authBtn').disabled = true;
   document.getElementById('pwdConfirmInput').style.display = 'block';
-  // 后台检查
+  // 先检查本地是否有12小时内的登录凭证
+  checkAutoLogin();
+}
+
+// 自动登录：检查 localStorage 中是否有12小时内的凭证
+async function checkAutoLogin() {
+  try {
+    const saved = localStorage.getItem('diary_auth');
+    if (saved) {
+      const auth = JSON.parse(saved);
+      const now = Date.now();
+      // 12小时内有效
+      if (auth.hash && (now - auth.time) < 12 * 60 * 60 * 1000) {
+        isLoggedIn = true;
+        showMainApp();
+        return;
+      }
+    }
+  } catch (e) {}
+  // 没有有效凭证，走正常登录流程
   checkIfSetup();
+}
+
+// 保存登录凭证到本地（12小时有效）
+function saveAuthToken(pwdHash) {
+  const auth = { hash: pwdHash, time: Date.now() };
+  localStorage.setItem('diary_auth', JSON.stringify(auth));
 }
 
 function showMainApp() {
@@ -429,6 +454,7 @@ document.getElementById('authBtn').addEventListener('click', async () => {
       await sbPost('settings', { key: 'master_password', value: pwdHash });
 
       isLoggedIn = true;
+      saveAuthToken(pwdHash);
       showToast('✅ 密码已设置，日记本已就绪', 'success');
       showMainApp();
     } else {
@@ -436,6 +462,7 @@ document.getElementById('authBtn').addEventListener('click', async () => {
       const data = await sbGet('settings', 'select=value&key=eq.master_password');
       if (data && data.length > 0 && data[0].value === pwdHash) {
         isLoggedIn = true;
+        saveAuthToken(pwdHash);
         showMainApp();
       } else {
         authError.textContent = '密码错误，请重试';
