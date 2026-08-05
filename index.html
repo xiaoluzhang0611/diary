@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -170,6 +170,32 @@ body{
 }
 .entry-card:hover .entry-delete{opacity:1}
 .entry-delete:hover{background:var(--danger-light);color:var(--danger)}
+.entry-edit{
+  position:absolute;top:12px;right:44px;background:transparent;border:none;color:var(--text-light);
+  cursor:pointer;font-size:15px;padding:4px 8px;border-radius:6px;transition:var(--transition);opacity:0
+}
+.entry-card:hover .entry-edit{opacity:1}
+.entry-edit:hover{background:var(--accent-light);color:var(--primary)}
+
+/* 编辑模式 */
+.edit-textarea{
+  width:100%;min-height:80px;padding:10px 12px;border:1.5px solid var(--accent);border-radius:var(--radius-sm);
+  font-size:15px;line-height:1.7;font-family:inherit;color:var(--text);resize:vertical;outline:none;
+  background:var(--bg);margin-top:8px;
+}
+.edit-actions{
+  display:flex;gap:8px;margin-top:8px;
+}
+.btn-save{
+  padding:6px 16px;border:none;border-radius:20px;font-size:13px;font-weight:600;
+  cursor:pointer;font-family:inherit;color:#fff;background:var(--primary);transition:var(--transition);
+}
+.btn-save:hover{background:var(--primary-hover)}
+.btn-cancel{
+  padding:6px 16px;border:1px solid var(--border);border-radius:20px;font-size:13px;font-weight:500;
+  cursor:pointer;font-family:inherit;color:var(--text-secondary);background:var(--card-bg);transition:var(--transition);
+}
+.btn-cancel:hover{background:var(--bg)}
 
 /* ===== 同步状态 ===== */
 .sync-status{
@@ -332,6 +358,16 @@ async function sbDelete(table, query) {
     headers: SB_HEADERS
   });
   if (!r.ok) throw new Error(r.status);
+}
+
+async function sbPatch(table, query, body) {
+  const r = await fetch(`${SB_URL}/rest/v1/${table}?${query}`, {
+    method: 'PATCH',
+    headers: { ...SB_HEADERS, 'Prefer': 'return=representation' },
+    body: JSON.stringify(body)
+  });
+  if (!r.ok) throw new Error(r.status);
+  return r.json();
 }
 
 // ==================== 密码加密（SHA-256） ====================
@@ -618,6 +654,10 @@ async function cloudDeleteEntry(entryId) {
   await sbDelete('entries', `id=eq.${entryId}`);
 }
 
+async function cloudUpdateEntry(entryId, updates) {
+  await sbPatch('entries', `id=eq.${entryId}`, updates);
+}
+
 // ==================== 工具函数 ====================
 function getTodayStr() {
   const d = new Date();
@@ -816,11 +856,71 @@ function formatDateLabel(dateStr) {
   return `📅 ${label}`;
 }
 
+// ==================== 原地编辑功能 ====================
+function startEditEntry(entryId) {
+  const textEl = document.querySelector(`[data-edit-text="${entryId}"]`);
+  if (!textEl) return;
+  // 如果已经在编辑中，不重复进入
+  if (textEl.querySelector('.edit-textarea')) return;
+
+  const card = textEl.closest('.entry-card');
+  // 隐藏编辑/删除按钮
+  card.querySelector('.entry-edit').style.display = 'none';
+  card.querySelector('.entry-delete').style.display = 'none';
+
+  const originalText = textEl.textContent;
+  textEl.innerHTML = `<textarea class="edit-textarea" rows="4">${originalText}</textarea>
+    <div class="edit-actions">
+      <button class="btn-save" onclick="window.saveEditEntry(${entryId})">💾 保存</button>
+      <button class="btn-cancel" onclick="window.cancelEditEntry(${entryId}, \`${escapeJs(originalText)}\`)">取消</button>
+    </div>`;
+
+  // 自动聚焦
+  const textarea = textEl.querySelector('.edit-textarea');
+  textarea.focus();
+  textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+}
+
+async function saveEditEntry(entryId) {
+  const textEl = document.querySelector(`[data-edit-text="${entryId}"]`);
+  if (!textEl) return;
+  const textarea = textEl.querySelector('.edit-textarea');
+  const newText = textarea.value.trim();
+  const originalText = textEl.getAttribute('data-original') || '';
+
+  try {
+    await cloudUpdateEntry(entryId, { text: newText });
+    showToast('✅ 修改已保存', 'success');
+    await refreshView();
+  } catch (err) {
+    showToast('❌ 保存失败，请重试', 'error');
+    // 恢复原来的编辑状态
+    const card = textEl.closest('.entry-card');
+    card.querySelector('.entry-edit').style.display = '';
+    card.querySelector('.entry-delete').style.display = '';
+  }
+}
+
+function cancelEditEntry(entryId, originalText) {
+  const textEl = document.querySelector(`[data-edit-text="${entryId}"]`);
+  if (!textEl) return;
+  textEl.textContent = originalText;
+
+  const card = textEl.closest('.entry-card');
+  card.querySelector('.entry-edit').style.display = '';
+  card.querySelector('.entry-delete').style.display = '';
+}
+
+function escapeJs(str) {
+  return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/`/g, '\\`').replace(/\n/g, '\\n');
+}
+
 function renderEntryCard(entry) {
   let card = `<div class="entry-card" data-id="${entry.id}" data-entryid="${entry.id}">
     <div class="entry-time"><span>🕐 ${entry.time}</span><span>${entry.mood}</span></div>
+    <button class="entry-edit" data-edit="${entry.id}">✏️</button>
     <button class="entry-delete" data-delete="${entry.id}">🗑️</button>`;
-  if (entry.text) card += `<div class="entry-text">${escapeHtml(entry.text)}</div>`;
+  if (entry.text) card += `<div class="entry-text" data-edit-text="${entry.id}">${escapeHtml(entry.text)}</div>`;
   if (entry.images && entry.images.length > 0) {
     entry.images.forEach(img => {
       card += `<img class="entry-image" src="${img}" alt="日记图片" data-lightbox="${img}">`;
@@ -834,6 +934,14 @@ function renderEntryCard(entry) {
 }
 
 function bindEntryCardEvents() {
+  // 编辑按钮
+  timelineContent.querySelectorAll('.entry-edit').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      startEditEntry(parseInt(btn.dataset.edit));
+    });
+  });
+  // 删除按钮
   timelineContent.querySelectorAll('.entry-delete').forEach(btn => {
     btn.addEventListener('click', async (e) => {
       e.stopPropagation();
