@@ -999,13 +999,13 @@ async function renderSummary() {
 }
 
 async function generateTodaySummary() {
-  const today = getTodayStr();
-  const entries = await cloudGetEntriesByDate(today);
+  await generateSummaryForDate(getTodayStr());
+  showToast('✨ 今日日记总结已生成！', 'success');
+}
 
-  if (entries.length === 0) {
-    showToast('今天还没有任何记录~', 'error');
-    return;
-  }
+async function generateSummaryForDate(dateStr, silent = false) {
+  const entries = await cloudGetEntriesByDate(dateStr);
+  if (entries.length === 0) return;
 
   const textCount = entries.filter(e => e.text).length;
   const imageCount = entries.filter(e => e.images && e.images.length > 0).length;
@@ -1026,8 +1026,13 @@ async function generateTodaySummary() {
     else timeSlots.night.push(e);
   });
 
+  // 格式化日期显示
+  const d = new Date(dateStr + 'T00:00:00');
+  const weekdays = ['日','一','二','三','四','五','六'];
+  const dateLabel = `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日 星期${weekdays[d.getDay()]}`;
+
   const moodLabel = {'😊':'开心','😐':'平静','😢':'有些难过','😡':'有点生气','🤩':'非常兴奋'};
-  let summary = `${today.replace(/-/g,'年').replace(/(\d+)年(\d+)年/,'$1年$2月')}日\n\n`;
+  let summary = `${dateLabel}\n\n`;
   summary += `整体心情偏向${moodLabel[dominantMood]||dominantMood}，共 ${entries.length} 条记录：${textCount} 段文字、${imageCount} 张图片、${audioCount} 条语音。\n\n`;
 
   const slotLabels = {morning:'🌅 清晨',noon:'☀️ 中午',afternoon:'🌤️ 下午',evening:'🌆 傍晚',night:'🌙 夜晚'};
@@ -1051,17 +1056,16 @@ async function generateTodaySummary() {
 
   // 删除旧总结
   const allEntries = await cloudGetAllEntries();
-  const existingSummary = allEntries.find(e => e.type==='summary' && e.date===today);
+  const existingSummary = allEntries.find(e => e.type==='summary' && e.date===dateStr);
   if (existingSummary) await cloudDeleteEntry(existingSummary.id);
 
   await cloudAddEntry({
-    id: Date.now(), date: today, time: getTimeStr(),
+    id: Date.now(), date: dateStr, time: '23:30',
     content: summary, type: 'summary',
     stats: { textCount, imageCount, audioCount }
   });
 
-  showToast('✨ 今日日记总结已生成！', 'success');
-  await refreshView();
+  if (!silent) await refreshView();
 }
 
 // ==================== 自动生成 ====================
@@ -1072,20 +1076,54 @@ async function checkAutoGenerate() {
   const now = new Date();
   const today = getTodayStr();
   const h = now.getHours(), m = now.getMinutes();
-  const pastTrigger = (h > AUTO_GEN_HOUR) || (h === AUTO_GEN_HOUR && m >= AUTO_GEN_MINUTE);
 
+  // 1. 页面打开时补漏：检查是否有任何日期有日记但没总结
+  await catchupMissingSummaries();
+
+  // 2. 每晚 23:30 实时检查今天的总结
+  const pastTrigger = (h > AUTO_GEN_HOUR) || (h === AUTO_GEN_HOUR && m >= AUTO_GEN_MINUTE);
   if (pastTrigger && !autoGenChecked) {
     autoGenChecked = true;
     setTimeout(async () => {
       const entries = await cloudGetAllEntries();
       if (!entries.some(e => e.type==='summary' && e.date===today)
           && entries.some(e => e.type==='entry' && e.date===today)) {
-        await generateTodaySummary();
+        await generateSummaryForDate(today, true);
         showToast('🌙 已自动为你生成今日日记总结', 'success');
+        // 记录已生成
+        localStorage.setItem('diary_last_autogen', today);
+        await refreshView();
       }
     }, 30000);
   }
   if (h < AUTO_GEN_HOUR) autoGenChecked = false;
+}
+
+// 补漏：找出所有有日记但没总结的日期，自动生成
+async function catchupMissingSummaries() {
+  const entries = await cloudGetAllEntries();
+  const entryDates = new Set();
+  const summaryDates = new Set();
+
+  entries.forEach(e => {
+    if (e.type === 'entry' && e.date) entryDates.add(e.date);
+    if (e.type === 'summary' && e.date) summaryDates.add(e.date);
+  });
+
+  const missingDates = [...entryDates].filter(d => !summaryDates.has(d) && d !== getTodayStr());
+  if (missingDates.length === 0) return;
+
+  for (const date of missingDates.sort()) {
+    try {
+      await generateSummaryForDate(date, true);
+    } catch (e) {
+      console.error('补漏失败', date, e);
+    }
+  }
+  if (missingDates.length > 0) {
+    await refreshView();
+    showToast(`📝 已为 ${missingDates.length} 天补生成日记总结`, 'success');
+  }
 }
 
 async function refreshView() {
