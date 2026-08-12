@@ -2,805 +2,860 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>我的日记本</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-:root{
-  --bg:#faf7f2;--card-bg:#fff;--text:#3c2415;--text-secondary:#7a6652;
-  --text-light:#a89880;--primary:#8b5e3c;--primary-hover:#6d4a30;
-  --accent:#d4a574;--accent-light:#f0e0cc;--border:#e8d5c4;
-  --danger:#e07060;--danger-light:#fce8e5;--success:#5b9a6f;
-  --shadow-sm:0 1px 3px rgba(60,36,21,.06);--shadow:0 2px 12px rgba(60,36,21,.08);
-  --shadow-lg:0 8px 30px rgba(60,36,21,.1);--radius:12px;--radius-sm:8px;
-  --transition:.25s cubic-bezier(.4,0,.2,1);
-}
-body{
-  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
-  background:var(--bg);color:var(--text);min-height:100vh;line-height:1.6;-webkit-font-smoothing:antialiased;
-}
-.container{max-width:680px;margin:0 auto;padding:16px}
+/* ========== 基础重置与变量 ========== */
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
-/* ===== 登录/设置密码页 ===== */
-.auth-page{
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  min-height:100vh;padding:20px;text-align:center;
+:root {
+  --bg: #faf7f2;
+  --card-bg: #ffffff;
+  --text: #3c2415;
+  --text-secondary: #7a6652;
+  --text-light: #a89880;
+  --primary: #8b5e3c;
+  --primary-hover: #6d4a30;
+  --accent: #d4a574;
+  --accent-light: #f0e0cc;
+  --border: #e8d5c4;
+  --danger: #e07060;
+  --danger-light: #fce8e5;
+  --success: #5b9a6f;
+  --shadow-sm: 0 1px 3px rgba(60, 36, 21, 0.06);
+  --shadow: 0 2px 12px rgba(60, 36, 21, 0.08);
+  --shadow-lg: 0 8px 30px rgba(60, 36, 21, 0.10);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.auth-card{
-  background:var(--card-bg);border-radius:var(--radius);padding:32px 24px;
-  box-shadow:var(--shadow-lg);border:1px solid var(--border);width:100%;max-width:380px;
-}
-.auth-title{
-  font-size:48px;margin-bottom:8px;
-}
-.auth-card h2{
-  font-size:20px;font-weight:700;color:var(--text);margin-bottom:4px;
-}
-.auth-card .subtitle{
-  font-size:13px;color:var(--text-light);margin-bottom:24px;
-}
-.auth-input{
-  width:100%;padding:14px 16px;border:1.5px solid var(--border);border-radius:var(--radius-sm);
-  font-size:15px;font-family:inherit;color:var(--text);outline:none;transition:var(--transition);
-  margin-bottom:12px;
-}
-.auth-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(212,165,116,.2)}
-.auth-btn{
-  width:100%;padding:14px;border:none;border-radius:26px;font-size:15px;font-weight:600;
-  cursor:pointer;transition:var(--transition);font-family:inherit;color:#fff;
-  background:var(--primary);margin-top:8px;
-}
-.auth-btn:hover{background:var(--primary-hover);transform:translateY(-1px)}
-.auth-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
-.auth-error{color:var(--danger);font-size:13px;margin-top:8px;min-height:20px}
-.auth-info{font-size:12px;color:var(--text-light);margin-top:20px;line-height:1.6}
-.auth-info .lock{font-size:14px}
 
-/* ===== 加载页 ===== */
-.loading-page{
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  min-height:100vh;gap:16px;
+/* ========== 布局 ========== */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
 }
-.loading-spinner{
-  width:40px;height:40px;border:3px solid var(--accent-light);border-top-color:var(--primary);
-  border-radius:50%;animation:spin .8s linear infinite;
-}
-@keyframes spin{to{transform:rotate(360deg)}}
 
-/* ===== 头部 ===== */
-.header{text-align:center;padding:20px 0 12px;position:relative}
-.header h1{font-size:26px;font-weight:700;background:linear-gradient(135deg,var(--primary),var(--accent));
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:2px}
-.header .date-display{font-size:13px;color:var(--text-light);margin-top:2px}
+.container {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 16px;
+}
 
-/* ===== 快速添加 ===== */
-.quick-add{
-  background:var(--card-bg);border-radius:var(--radius);padding:16px;
-  box-shadow:var(--shadow-sm);margin-bottom:16px;border:1px solid var(--border);transition:var(--transition)
+/* ========== 头部 ========== */
+.header {
+  text-align: center;
+  padding: 28px 0 16px;
+  position: relative;
 }
-.quick-add:focus-within{box-shadow:var(--shadow);border-color:var(--accent)}
-.quick-add textarea{
-  width:100%;border:none;outline:none;resize:vertical;font-size:15px;font-family:inherit;
-  color:var(--text);background:transparent;min-height:48px;max-height:200px;line-height:1.6
-}
-.quick-add textarea::placeholder{color:var(--text-light)}
-.add-toolbar{
-  display:flex;align-items:center;justify-content:space-between;
-  margin-top:12px;padding-top:12px;border-top:1px solid var(--border);flex-wrap:wrap;gap:8px
-}
-.toolbar-left,.toolbar-right{display:flex;gap:6px;align-items:center}
 
-.btn{
-  display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:22px;
-  border:none;font-size:14px;font-weight:500;cursor:pointer;transition:var(--transition);
-  font-family:inherit;white-space:nowrap
+.header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 2px;
 }
-.btn-icon{width:38px;height:38px;padding:0;border-radius:50%;justify-content:center;font-size:18px}
-.btn-primary{background:var(--primary);color:#fff}
-.btn-primary:hover{background:var(--primary-hover);transform:translateY(-1px)}
-.btn-secondary{background:var(--accent-light);color:var(--primary)}
-.btn-secondary:hover{background:var(--accent);color:#fff}
-.btn-outline{background:transparent;color:var(--text-secondary);border:1.5px solid var(--border)}
-.btn-outline:hover{border-color:var(--primary);color:var(--primary)}
-.btn-danger{background:var(--danger-light);color:var(--danger)}
-.btn-danger:hover{background:var(--danger);color:#fff}
-.btn:disabled{opacity:.5;cursor:not-allowed;transform:none!important}
-.btn-recording{background:var(--danger)!important;color:#fff!important;animation:pulse 1.5s infinite}
-@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(224,112,96,.5)}50%{box-shadow:0 0 0 12px rgba(224,112,96,0)}}
-.recording-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#fff;animation:blink .8s infinite}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 
-/* ===== 图片 & 音频预览 ===== */
-.image-preview-area{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
-.image-preview-item{position:relative;width:80px;height:80px;border-radius:var(--radius-sm);overflow:hidden;border:2px solid var(--border)}
-.image-preview-item img{width:100%;height:100%;object-fit:cover}
-.image-preview-item .remove-img{
-  position:absolute;top:2px;right:2px;width:22px;height:22px;border-radius:50%;
-  background:rgba(0,0,0,.6);color:#fff;border:none;cursor:pointer;font-size:12px;
-  display:flex;align-items:center;justify-content:center
+.header .date-display {
+  font-size: 14px;
+  color: var(--text-light);
+  margin-top: 4px;
 }
-.audio-preview-area{margin-top:10px}
-.audio-preview{display:flex;align-items:center;gap:10px;background:var(--accent-light);padding:8px 14px;border-radius:20px;font-size:13px;color:var(--primary)}
-.audio-preview audio{height:32px}
 
-/* ===== 标签页 ===== */
-.tabs{
-  display:flex;background:var(--card-bg);border-radius:var(--radius);padding:4px;
-  margin-bottom:16px;box-shadow:var(--shadow-sm);border:1px solid var(--border)
+/* ========== 快速添加面板 ========== */
+.quick-add {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 16px;
+  border: 1px solid var(--border);
+  transition: var(--transition);
 }
-.tab{
-  flex:1;padding:10px 16px;text-align:center;border:none;background:transparent;
-  font-size:14px;font-weight:500;cursor:pointer;border-radius:9px;color:var(--text-secondary);
-  transition:var(--transition);font-family:inherit
-}
-.tab.active{background:var(--primary);color:#fff}
 
-/* ===== 日期选择器 ===== */
-.date-picker{padding:9px 12px;border-radius:22px;border:1.5px solid var(--border);font-size:13px;font-family:inherit;color:var(--text);background:transparent;cursor:pointer;outline:none;transition:var(--transition);width:140px}
-.date-picker:focus{border-color:var(--accent)}
-.date-picker:hover{border-color:var(--primary)}
-.date-picker.is-backdated{border-color:var(--accent);background:var(--accent-light);color:var(--primary);font-weight:500}
+.quick-add:focus-within {
+  box-shadow: var(--shadow);
+  border-color: var(--accent);
+}
 
-/* ===== 表情选择（参考微信样式） ===== */
-.mood-picker{position:relative}
-.mood-trigger{transition:var(--transition)}
-.mood-trigger:hover{transform:scale(1.15)}
-.mood-panel{
-  position:absolute;bottom:calc(100% + 8px);left:0;z-index:100;
-  width:304px;max-width:calc(100vw - 24px);background:var(--card-bg);
-  border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);
-  padding:10px;display:none
+.quick-add textarea {
+  width: 100%;
+  border: none;
+  outline: none;
+  resize: vertical;
+  font-size: 15px;
+  font-family: inherit;
+  color: var(--text);
+  background: transparent;
+  min-height: 48px;
+  max-height: 200px;
+  line-height: 1.6;
 }
-.mood-panel.show{display:block;animation:popIn .15s ease}
-@keyframes popIn{from{opacity:0;transform:translateY(8px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
-.mood-cats{
-  display:flex;gap:2px;margin-bottom:8px;overflow-x:auto;padding-bottom:4px;
-  -webkit-overflow-scrolling:touch
-}
-.mood-cat{
-  min-width:34px;height:34px;border-radius:10px;border:none;background:transparent;
-  font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;
-  transition:var(--transition);flex-shrink:0
-}
-.mood-cat:hover{background:var(--accent-light)}
-.mood-cat.active{background:var(--accent-light);box-shadow:inset 0 0 0 1.5px var(--accent)}
-.mood-grid{
-  display:grid;grid-template-columns:repeat(8,1fr);gap:2px;
-  max-height:180px;overflow-y:auto;-webkit-overflow-scrolling:touch
-}
-.mood-item{
-  font-size:22px;padding:6px 0;border:none;background:transparent;cursor:pointer;border-radius:8px;
-  display:flex;align-items:center;justify-content:center;line-height:1;transition:var(--transition)
-}
-.mood-item:hover{background:var(--accent-light);transform:scale(1.15)}
-.mood-item.selected{background:var(--accent-light);box-shadow:inset 0 0 0 1.5px var(--accent)}
 
-/* ===== 日记条目 ===== */
-.section-title{font-size:13px;font-weight:600;color:var(--text-light);text-transform:uppercase;letter-spacing:1px;margin:16px 0 10px;padding-left:4px}
-.entry-card{
-  background:var(--card-bg);border-radius:var(--radius);padding:16px;margin-bottom:10px;
-  box-shadow:var(--shadow-sm);border:1px solid var(--border);transition:var(--transition);position:relative
+.quick-add textarea::placeholder {
+  color: var(--text-light);
 }
-.entry-card:hover{box-shadow:var(--shadow)}
-.entry-time{font-size:12px;color:var(--text-light);margin-bottom:8px;display:flex;align-items:center;gap:6px}
-.entry-text{font-size:15px;line-height:1.7;color:var(--text);white-space:pre-wrap;word-break:break-word}
-.entry-image{margin-top:10px;border-radius:var(--radius-sm);max-width:100%;max-height:300px;object-fit:cover;cursor:pointer;transition:var(--transition)}
-.entry-image:hover{opacity:.9}
-.entry-audio{margin-top:10px}
-.entry-audio audio{width:100%;max-width:320px;height:36px}
-.entry-delete{
-  position:absolute;top:12px;right:12px;background:transparent;border:none;color:var(--text-light);
-  cursor:pointer;font-size:16px;padding:4px 8px;border-radius:6px;transition:var(--transition);opacity:0
-}
-.entry-card:hover .entry-delete{opacity:1}
-.entry-delete:hover{background:var(--danger-light);color:var(--danger)}
-.entry-edit{
-  position:absolute;top:12px;right:44px;background:transparent;border:none;color:var(--text-light);
-  cursor:pointer;font-size:15px;padding:4px 8px;border-radius:6px;transition:var(--transition);opacity:0
-}
-.entry-card:hover .entry-edit{opacity:1}
-.entry-edit:hover{background:var(--accent-light);color:var(--primary)}
 
-/* 编辑模式 */
-.edit-textarea{
-  width:100%;min-height:80px;padding:10px 12px;border:1.5px solid var(--accent);border-radius:var(--radius-sm);
-  font-size:15px;line-height:1.7;font-family:inherit;color:var(--text);resize:vertical;outline:none;
-  background:var(--bg);margin-top:8px;
+.add-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  flex-wrap: wrap;
+  gap: 8px;
 }
-.edit-actions{
-  display:flex;gap:8px;margin-top:8px;
-}
-.btn-save{
-  padding:6px 16px;border:none;border-radius:20px;font-size:13px;font-weight:600;
-  cursor:pointer;font-family:inherit;color:#fff;background:var(--primary);transition:var(--transition);
-}
-.btn-save:hover{background:var(--primary-hover)}
-.btn-cancel{
-  padding:6px 16px;border:1px solid var(--border);border-radius:20px;font-size:13px;font-weight:500;
-  cursor:pointer;font-family:inherit;color:var(--text-secondary);background:var(--card-bg);transition:var(--transition);
-}
-.btn-cancel:hover{background:var(--bg)}
 
-/* ===== 同步状态 ===== */
-.sync-status{
-  display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--success);margin-left:8px
+.toolbar-left {
+  display: flex;
+  gap: 6px;
+  align-items: center;
 }
-.sync-status.syncing{color:var(--accent);animation:spin .8s linear infinite}
 
-/* ===== 总结卡片 ===== */
-.summary-card{
-  background:linear-gradient(135deg,#fffdf7,#fef9f0);border-radius:var(--radius);padding:20px;
-  margin-bottom:16px;box-shadow:var(--shadow);border:2px solid var(--accent);position:relative
+.toolbar-right {
+  display: flex;
+  gap: 6px;
+  align-items: center;
 }
-.summary-card::before{
-  content:'📔';position:absolute;top:-16px;left:20px;font-size:28px;background:var(--bg);padding:0 8px;border-radius:50%
+
+/* ========== 按钮样式 ========== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border-radius: 22px;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: inherit;
+  white-space: nowrap;
 }
-.summary-date{font-size:16px;font-weight:700;color:var(--primary);margin-bottom:12px;display:flex;align-items:center;gap:8px}
-.summary-auto-badge{font-size:11px;background:var(--success);color:#fff;padding:2px 8px;border-radius:10px;font-weight:400}
-.summary-content{font-size:15px;line-height:1.8;color:var(--text);white-space:pre-wrap}
-.summary-stats{display:flex;gap:16px;margin-top:12px;font-size:12px;color:var(--text-light)}
-.summary-stats span{display:flex;align-items:center;gap:4px}
 
-/* ===== 空状态 ===== */
-.empty-state{text-align:center;padding:48px 20px;color:var(--text-light)}
-.empty-state .icon{font-size:48px;margin-bottom:12px}
-.empty-state p{font-size:15px;margin-bottom:4px}
-.empty-state .sub{font-size:13px;opacity:.7}
-.generate-area{text-align:center;padding:16px 0}
-.generate-btn{padding:12px 28px;font-size:15px}
-.auto-info{font-size:12px;color:var(--text-light);margin-top:8px}
-
-/* ===== Toast ===== */
-.toast-container{
-  position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:9999;
-  display:flex;flex-direction:column;gap:8px;pointer-events:none
+.btn-icon {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border-radius: 50%;
+  justify-content: center;
+  font-size: 18px;
 }
-.toast{
-  background:var(--text);color:#fff;padding:12px 24px;border-radius:22px;font-size:14px;
-  box-shadow:var(--shadow-lg);animation:slideDown .3s ease,fadeOut .3s ease 2.5s forwards;text-align:center;pointer-events:auto
+
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
 }
-.toast.success{background:var(--success)}
-.toast.error{background:var(--danger)}
-@keyframes slideDown{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
-@keyframes fadeOut{from{opacity:1}to{opacity:0}}
+.btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
 
-/* ===== 灯箱 ===== */
-.lightbox{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:10000;display:flex;align-items:center;justify-content:center;cursor:pointer;animation:fadeIn .2s ease}
-.lightbox img{max-width:90vw;max-height:90vh;border-radius:8px;object-fit:contain}
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.btn-secondary {
+  background: var(--accent-light);
+  color: var(--primary);
+}
+.btn-secondary:hover { background: var(--accent); color: #fff; }
 
-/* ===== 响应式 ===== */
-@media(max-width:480px){
-  .container{padding:12px}
-  .header h1{font-size:22px}
-  .btn{padding:8px 14px;font-size:13px}
-  .btn-icon{width:34px;height:34px;font-size:16px}
-  .entry-card{padding:12px}
-  .summary-card{padding:16px}
-  .auth-card{padding:24px 18px}
+.btn-outline {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1.5px solid var(--border);
+}
+.btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+
+.btn-danger {
+  background: var(--danger-light);
+  color: var(--danger);
+}
+.btn-danger:hover { background: var(--danger); color: #fff; }
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* ========== 录音按钮动画 ========== */
+.btn-recording {
+  background: var(--danger) !important;
+  color: #fff !important;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(224, 112, 96, 0.5); }
+  50% { box-shadow: 0 0 0 12px rgba(224, 112, 96, 0); }
+}
+
+.recording-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #fff;
+  animation: blink 0.8s infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* ========== 图片预览区 ========== */
+.image-preview-area {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.image-preview-item {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 2px solid var(--border);
+}
+
+.image-preview-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.image-preview-item .remove-img {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.6);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ========== 音频预览区 ========== */
+.audio-preview-area {
+  margin-top: 10px;
+}
+
+.audio-preview {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--accent-light);
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  color: var(--primary);
+}
+
+.audio-preview audio {
+  height: 32px;
+}
+
+/* ========== 标签页 ========== */
+.tabs {
+  display: flex;
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  padding: 4px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+}
+
+.tab {
+  flex: 1;
+  padding: 10px 16px;
+  text-align: center;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 9px;
+  color: var(--text-secondary);
+  transition: var(--transition);
+  font-family: inherit;
+}
+
+.tab.active {
+  background: var(--primary);
+  color: #fff;
+}
+
+/* ========== 日记条目 ========== */
+.section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-light);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 16px 0 10px;
+  padding-left: 4px;
+}
+
+.entry-card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 10px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+  transition: var(--transition);
+  position: relative;
+}
+
+.entry-card:hover {
+  box-shadow: var(--shadow);
+}
+
+.entry-time {
+  font-size: 12px;
+  color: var(--text-light);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.entry-mood {
+  font-size: 16px;
+}
+
+.entry-text {
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--text);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.entry-image {
+  margin-top: 10px;
+  border-radius: var(--radius-sm);
+  max-width: 100%;
+  max-height: 300px;
+  object-fit: cover;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.entry-image:hover {
+  opacity: 0.9;
+}
+
+.entry-audio {
+  margin-top: 10px;
+}
+
+.entry-audio audio {
+  width: 100%;
+  max-width: 320px;
+  height: 36px;
+}
+
+.entry-delete {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: transparent;
+  border: none;
+  color: var(--text-light);
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: var(--transition);
+  opacity: 0;
+}
+
+.entry-card:hover .entry-delete {
+  opacity: 1;
+}
+
+.entry-delete:hover {
+  background: var(--danger-light);
+  color: var(--danger);
+}
+
+/* ========== 日记总结卡片 ========== */
+.summary-card {
+  background: linear-gradient(135deg, #fffdf7, #fef9f0);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow);
+  border: 2px solid var(--accent);
+  position: relative;
+}
+
+.summary-card::before {
+  content: '📔';
+  position: absolute;
+  top: -16px;
+  left: 20px;
+  font-size: 28px;
+  background: var(--bg);
+  padding: 0 8px;
+  border-radius: 50%;
+}
+
+.summary-date {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.summary-auto-badge {
+  font-size: 11px;
+  background: var(--success);
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 400;
+}
+
+.summary-content {
+  font-size: 15px;
+  line-height: 1.8;
+  color: var(--text);
+  white-space: pre-wrap;
+}
+
+.summary-stats {
+  display: flex;
+  gap: 16px;
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--text-light);
+}
+
+.summary-stats span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ========== 空状态 ========== */
+.empty-state {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--text-light);
+}
+
+.empty-state .icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+.empty-state p {
+  font-size: 15px;
+  margin-bottom: 4px;
+}
+
+.empty-state .sub {
+  font-size: 13px;
+  opacity: 0.7;
+}
+
+/* ========== 生成总结按钮区域 ========== */
+.generate-area {
+  text-align: center;
+  padding: 16px 0;
+}
+
+.generate-btn {
+  padding: 12px 28px;
+  font-size: 15px;
+}
+
+.auto-info {
+  font-size: 12px;
+  color: var(--text-light);
+  margin-top: 8px;
+}
+
+/* ========== Toast 提示 ========== */
+.toast-container {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.toast {
+  background: var(--text);
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 22px;
+  font-size: 14px;
+  box-shadow: var(--shadow-lg);
+  animation: slideDown 0.3s ease, fadeOut 0.3s ease 2s forwards;
+  text-align: center;
+  pointer-events: auto;
+}
+
+.toast.success { background: var(--success); }
+.toast.error { background: var(--danger); }
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+/* ========== 图片灯箱 ========== */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.9);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  animation: fadeIn 0.2s ease;
+}
+
+.lightbox img {
+  max-width: 90vw;
+  max-height: 90vh;
+  border-radius: 8px;
+  object-fit: contain;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ========== 响应式 ========== */
+@media (max-width: 480px) {
+  .container { padding: 12px; }
+  .header h1 { font-size: 24px; }
+  .btn { padding: 8px 14px; font-size: 13px; }
+  .btn-icon { width: 34px; height: 34px; font-size: 16px; }
+  .entry-card { padding: 12px; }
+  .summary-card { padding: 16px; }
+}
+
+/* ========== 表情选择（微信风格弹出面板） ========== */
+.mood-picker { position: relative; }
+.mood-trigger { transition: var(--transition); }
+.mood-trigger:hover { transform: scale(1.15); }
+.mood-panel {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  z-index: 100;
+  width: 304px;
+  max-width: calc(100vw - 24px);
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  padding: 10px;
+  display: none;
+}
+.mood-panel.show { display: block; animation: popIn .15s ease; }
+@keyframes popIn {
+  from { opacity: 0; transform: translateY(8px) scale(.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.mood-cats {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+}
+.mood-cat {
+  min-width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+  flex-shrink: 0;
+}
+.mood-cat:hover { background: var(--accent-light); }
+.mood-cat.active { background: var(--accent-light); box-shadow: inset 0 0 0 1.5px var(--accent); }
+.mood-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 2px;
+  max-height: 180px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.mood-item {
+  font-size: 22px;
+  padding: 6px 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: var(--transition);
+}
+.mood-item:hover { background: var(--accent-light); transform: scale(1.15); }
+.mood-item.selected { background: var(--accent-light); box-shadow: inset 0 0 0 1.5px var(--accent); }
+
+/* ========== 日期选择器 ========== */
+.date-picker-wrap {
+  position: relative;
+}
+
+.date-picker {
+  padding: 9px 12px;
+  border-radius: 22px;
+  border: 1.5px solid var(--border);
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--text);
+  background: transparent;
+  cursor: pointer;
+  outline: none;
+  transition: var(--transition);
+  width: 140px;
+}
+
+.date-picker:focus {
+  border-color: var(--accent);
+}
+
+.date-picker:hover {
+  border-color: var(--primary);
+}
+
+.date-picker.is-backdated {
+  border-color: var(--accent);
+  background: var(--accent-light);
+  color: var(--primary);
+  font-weight: 500;
 }
 </style>
 </head>
 <body>
 
-<!-- ===== 加载页（默认隐藏） ===== -->
-<div class="loading-page" id="loadingPage" style="display:none">
-  <div class="loading-spinner"></div>
-  <div style="color:var(--text-secondary);font-size:14px">正在连接云端...</div>
-</div>
+<div class="toast-container" id="toastContainer"></div>
 
-<!-- ===== 登录/注册页（默认显示） ===== -->
-<div class="auth-page" id="authPage">
-  <div class="auth-card">
-    <div class="auth-title">📖</div>
-    <h2 id="authTitle">设置访问密码</h2>
-    <p class="subtitle" id="authSubtitle">首次使用，请设置一个密码保护你的日记</p>
-    <input type="password" class="auth-input" id="pwdInput" placeholder="请输入密码" autocomplete="new-password">
-    <input type="password" class="auth-input" id="pwdConfirmInput" placeholder="确认密码" autocomplete="new-password" style="display:none">
-    <button class="auth-btn" id="authBtn">设置密码</button>
-    <div class="auth-error" id="authError"></div>
-    <div class="auth-info">
-      <span class="lock">🔒</span> 密码经过加密存储，只有你能解锁
-    </div>
+<div class="container">
+  <!-- 头部 -->
+  <div class="header">
+    <h1>📖 我的日记本</h1>
+    <div class="date-display" id="dateDisplay"></div>
   </div>
-</div>
 
-<!-- ===== 主应用 ===== -->
-<div id="mainApp" style="display:none">
-  <div class="toast-container" id="toastContainer"></div>
-  <div class="container">
-    <div class="header">
-      <h1>📖 我的日记本 <span class="sync-status" id="syncStatus">☁️ 已同步</span></h1>
-      <div class="date-display" id="dateDisplay"></div>
-    </div>
-
-    <div class="quick-add" id="quickAdd">
-      <textarea id="entryText" placeholder="此刻的想法..." rows="1"></textarea>
-      <div class="image-preview-area" id="imagePreview"></div>
-      <div class="audio-preview-area" id="audioPreview"></div>
-      <div class="add-toolbar">
-        <div class="toolbar-left">
-          <button class="btn btn-icon btn-outline" id="voiceBtn" title="语音记录">🎤</button>
-          <button class="btn btn-icon btn-outline" id="imageBtn" title="添加图片">🖼️</button>
-          <input type="file" id="imageInput" accept="image/*" style="display:none" multiple>
-          <div class="mood-picker" id="moodPicker">
-            <button class="btn btn-icon btn-outline mood-trigger" id="moodTrigger" title="选择表情">😐</button>
-            <div class="mood-panel" id="moodPanel">
-              <div class="mood-cats" id="moodCats"></div>
-              <div class="mood-grid" id="moodGrid"></div>
-            </div>
+  <!-- 快速添加 -->
+  <div class="quick-add" id="quickAdd">
+    <textarea id="entryText" placeholder="此刻的想法..." rows="1"></textarea>
+    <div class="image-preview-area" id="imagePreview"></div>
+    <div class="audio-preview-area" id="audioPreview"></div>
+    <div class="add-toolbar">
+      <div class="toolbar-left">
+        <!-- 录音按钮 -->
+        <button class="btn btn-icon btn-outline" id="voiceBtn" title="语音记录">
+          🎤
+        </button>
+        <!-- 图片按钮 -->
+        <button class="btn btn-icon btn-outline" id="imageBtn" title="添加图片">
+          🖼️
+        </button>
+        <input type="file" id="imageInput" accept="image/*" style="display:none" multiple>
+        <!-- 表情选择（微信风格） -->
+        <div class="mood-picker" id="moodPicker">
+          <button class="btn btn-icon btn-outline mood-trigger" id="moodTrigger" title="选择表情">😐</button>
+          <div class="mood-panel" id="moodPanel">
+            <div class="mood-cats" id="moodCats"></div>
+            <div class="mood-grid" id="moodGrid"></div>
           </div>
         </div>
-        <div class="toolbar-right">
-          <input type="date" id="targetDateInput" class="date-picker" title="选择记录日期">
-          <button class="btn btn-primary" id="submitBtn">✏️ 记录</button>
+      </div>
+      <div class="toolbar-right">
+        <!-- 日期选择器 -->
+        <div class="date-picker-wrap">
+          <input type="date" id="targetDateInput" class="date-picker" title="选择记录日期（补记时使用）">
         </div>
+        <button class="btn btn-primary" id="submitBtn">
+          ✏️ 记录
+        </button>
       </div>
     </div>
-
-    <div class="tabs">
-      <button class="tab active" data-tab="timeline">📋 时间线</button>
-      <button class="tab" data-tab="summary">📝 日记总结</button>
-    </div>
-    <div id="timelineContent"></div>
-    <div id="summaryContent" style="display:none"></div>
   </div>
+
+  <!-- 标签页 -->
+  <div class="tabs">
+    <button class="tab active" data-tab="timeline">📋 时间线</button>
+    <button class="tab" data-tab="summary">📝 日记总结</button>
+  </div>
+
+  <!-- 内容区 -->
+  <div id="timelineContent"></div>
+  <div id="summaryContent" style="display:none;"></div>
 </div>
 
 <script>
-// ==================== Supabase 直连 API（无需外部SDK） ====================
-const SB_URL = 'https://rebucixojhdfejnzyoiz.supabase.co';
-const SB_KEY = 'sb_publishable_lC7n3KoEAMt-EtQKWmtH1A_GxpekKIN';
-const SB_HEADERS = {
-  'apikey': SB_KEY,
-  'Authorization': 'Bearer ' + SB_KEY,
-  'Content-Type': 'application/json'
-};
-let isLoggedIn = false;
+// ==================== 日记本核心逻辑 ====================
 
-// 通用 REST 请求
-async function sbGet(table, query = '') {
-  const url = `${SB_URL}/rest/v1/${table}?${query}`;
-  const r = await fetch(url, { headers: SB_HEADERS });
-  if (!r.ok) throw new Error(r.status);
-  return r.json();
-}
+// ---------- 数据库 (IndexedDB) ----------
+const DB_NAME = 'MyDiaryDB';
+const DB_VERSION = 1;
 
-async function sbPost(table, body) {
-  const r = await fetch(`${SB_URL}/rest/v1/${table}`, {
-    method: 'POST',
-    headers: { ...SB_HEADERS, 'Prefer': 'return=representation' },
-    body: JSON.stringify(body)
-  });
-  if (!r.ok) throw new Error(r.status);
-  return r.json();
-}
-
-async function sbDelete(table, query) {
-  const r = await fetch(`${SB_URL}/rest/v1/${table}?${query}`, {
-    method: 'DELETE',
-    headers: SB_HEADERS
-  });
-  if (!r.ok) throw new Error(r.status);
-}
-
-async function sbPatch(table, query, body) {
-  const r = await fetch(`${SB_URL}/rest/v1/${table}?${query}`, {
-    method: 'PATCH',
-    headers: { ...SB_HEADERS, 'Prefer': 'return=representation' },
-    body: JSON.stringify(body)
-  });
-  if (!r.ok) throw new Error(r.status);
-  return r.json();
-}
-
-// ==================== 密码加密（SHA-256） ====================
-async function sha256(message) {
-  const msgBuffer = new TextEncoder().encode(message);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-// ==================== 认证逻辑 ====================
-let isFirstTimeSetup = true;
-
-// 根据是否已设置密码渲染界面
-function applyAuthState(hasPwd) {
-  isFirstTimeSetup = !hasPwd;
-  if (hasPwd) {
-    document.getElementById('authTitle').textContent = '输入密码';
-    document.getElementById('authSubtitle').textContent = '请输入你的访问密码';
-    document.getElementById('authBtn').textContent = '解锁日记本';
-    document.getElementById('pwdConfirmInput').style.display = 'none';
-  } else {
-    document.getElementById('authTitle').textContent = '设置访问密码';
-    document.getElementById('authSubtitle').textContent = '首次使用，请设置一个密码保护你的日记';
-    document.getElementById('authBtn').textContent = '设置密码';
-    document.getElementById('pwdConfirmInput').style.display = 'block';
-  }
-}
-
-async function checkIfSetup() {
-  const authBtn = document.getElementById('authBtn');
-  try {
-    const data = await sbGet('settings', 'select=value&key=eq.master_password');
-    const hasPwd = data && data.length > 0 && data[0].value;
-    // 缓存密码状态，下次打开立即显示正确界面
-    localStorage.setItem('diary_has_pwd', hasPwd ? '1' : '0');
-    applyAuthState(hasPwd);
-  } catch (e) {
-    console.error('检查设置状态:', e);
-    // 查询失败时用本地缓存兜底，避免误显示"设置密码"
-    applyAuthState(localStorage.getItem('diary_has_pwd') === '1');
-  }
-  authBtn.disabled = false;
-}
-
-function showAuthPage() {
-  document.getElementById('loadingPage').style.display = 'none';
-  document.getElementById('mainApp').style.display = 'none';
-  const authPage = document.getElementById('authPage');
-  authPage.style.display = 'flex';
-  document.getElementById('authError').textContent = '';
-  document.getElementById('pwdInput').value = '';
-  document.getElementById('pwdConfirmInput').value = '';
-
-  // 先读本地缓存的密码状态立即渲染，避免闪烁到"设置访问密码"
-  const cachedHasPwd = localStorage.getItem('diary_has_pwd');
-  if (cachedHasPwd === '1') {
-    applyAuthState(true);
-  } else if (cachedHasPwd === '0') {
-    applyAuthState(false);
-  } else {
-    // 没有缓存，显示中性状态，等查询结果
-    document.getElementById('authTitle').textContent = '正在检查...';
-    document.getElementById('authSubtitle').textContent = '正在连接日记本';
-    document.getElementById('authBtn').textContent = '连接中...';
-    document.getElementById('authBtn').disabled = true;
-    document.getElementById('pwdConfirmInput').style.display = 'block';
-  }
-  // 先检查本地是否有12小时内的登录凭证
-  checkAutoLogin();
-}
-
-// 自动登录：检查 localStorage 中是否有12小时内的凭证
-async function checkAutoLogin() {
-  try {
-    const saved = localStorage.getItem('diary_auth');
-    if (saved) {
-      const auth = JSON.parse(saved);
-      const now = Date.now();
-      // 12小时内有效
-      if (auth.hash && (now - auth.time) < 12 * 60 * 60 * 1000) {
-        isLoggedIn = true;
-        showMainApp();
-        return;
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains('entries')) {
+        const store = db.createObjectStore('entries', { keyPath: 'id' });
+        store.createIndex('date', 'date', { unique: false });
+        store.createIndex('type', 'type', { unique: false });
       }
-    }
-  } catch (e) {}
-  // 没有有效凭证，走正常登录流程
-  checkIfSetup();
+    };
+    req.onsuccess = (e) => resolve(e.target.result);
+    req.onerror = () => reject(req.error);
+  });
 }
 
-// 保存登录凭证到本地（12小时有效）
-function saveAuthToken(pwdHash) {
-  const auth = { hash: pwdHash, time: Date.now() };
-  localStorage.setItem('diary_auth', JSON.stringify(auth));
+async function addEntry(entry) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('entries', 'readwrite');
+    const store = tx.objectStore('entries');
+    const req = store.add(entry);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
 }
 
-function showMainApp() {
-  document.getElementById('loadingPage').style.display = 'none';
-  document.getElementById('authPage').style.display = 'none';
-  document.getElementById('mainApp').style.display = 'block';
-  initDiaryApp();
+async function getAllEntries() {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('entries', 'readonly');
+    const store = tx.objectStore('entries');
+    const req = store.getAll();
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
 }
 
-// 登录/注册按钮
-document.getElementById('authBtn').addEventListener('click', async () => {
-  const pwd = document.getElementById('pwdInput').value;
-  const authBtn = document.getElementById('authBtn');
-  const authError = document.getElementById('authError');
+async function deleteEntry(id) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('entries', 'readwrite');
+    const store = tx.objectStore('entries');
+    const req = store.delete(id);
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject(req.error);
+  });
+}
 
-  if (!pwd || pwd.length < 4) {
-    authError.textContent = '密码至少需要4个字符';
-    return;
-  }
+async function getEntriesByDate(dateStr) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('entries', 'readonly');
+    const store = tx.objectStore('entries');
+    const index = store.index('date');
+    const req = index.getAll(dateStr);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
 
-  authBtn.disabled = true;
-  authBtn.textContent = '处理中...';
-  authError.textContent = '';
-
-  try {
-    const pwdHash = await sha256(pwd);
-
-    if (isFirstTimeSetup) {
-      const confirmPwd = document.getElementById('pwdConfirmInput').value;
-      if (pwd !== confirmPwd) {
-        authError.textContent = '两次密码不一致';
-        authBtn.disabled = false;
-        authBtn.textContent = '设置密码';
-        return;
-      }
-
-      // 保存密码哈希到 Supabase
-      await sbPost('settings', { key: 'master_password', value: pwdHash });
-      // 同步缓存密码状态
-      localStorage.setItem('diary_has_pwd', '1');
-
-      isLoggedIn = true;
-      saveAuthToken(pwdHash);
-      showToast('✅ 密码已设置，日记本已就绪', 'success');
-      showMainApp();
-    } else {
-      // 验证密码
-      const data = await sbGet('settings', 'select=value&key=eq.master_password');
-      if (data && data.length > 0 && data[0].value === pwdHash) {
-        isLoggedIn = true;
-        saveAuthToken(pwdHash);
-        showMainApp();
-      } else {
-        authError.textContent = '密码错误，请重试';
-        authBtn.disabled = false;
-        authBtn.textContent = '解锁日记本';
-      }
-    }
-  } catch (err) {
-    console.error('认证错误:', err);
-    authError.textContent = '网络错误，请稍后重试';
-    authBtn.disabled = false;
-    authBtn.textContent = isFirstTimeSetup ? '设置密码' : '解锁日记本';
-  }
-});
-
-// 回车键提交
-document.getElementById('pwdInput').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') document.getElementById('authBtn').click();
-});
-document.getElementById('pwdConfirmInput').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') document.getElementById('authBtn').click();
-});
-
-// ==================== 日记应用核心 ====================
-
+// ---------- 应用状态 ----------
 let currentMood = '😐';
 let currentDate = getTodayStr();
-let pendingImages = [];
-let pendingAudio = null;
+let pendingImages = [];     // [{ dataUrl, file }]
+let pendingAudio = null;    // { blob, dataUrl }
 let mediaRecorder = null;
 let audioChunks = [];
 let isRecording = false;
 let currentTab = 'timeline';
 
-// DOM
-let entryText, imagePreview, audioPreview, voiceBtn, imageBtn, imageInput;
-let submitBtn, timelineContent, summaryContent, targetDateInput;
-let toastContainer, dateDisplay, moodPicker, moodTrigger, moodPanel, moodGrid, moodCats;
+// ---------- DOM 元素 ----------
+const entryText = document.getElementById('entryText');
+const imagePreview = document.getElementById('imagePreview');
+const audioPreview = document.getElementById('audioPreview');
+const voiceBtn = document.getElementById('voiceBtn');
+const imageBtn = document.getElementById('imageBtn');
+const imageInput = document.getElementById('imageInput');
+const submitBtn = document.getElementById('submitBtn');
+const timelineContent = document.getElementById('timelineContent');
+const summaryContent = document.getElementById('summaryContent');
+const toastContainer = document.getElementById('toastContainer');
+const dateDisplay = document.getElementById('dateDisplay');
+const moodPicker = document.getElementById('moodPicker');
+const moodTrigger = document.getElementById('moodTrigger');
+const moodPanel = document.getElementById('moodPanel');
+const moodGrid = document.getElementById('moodGrid');
+const moodCats = document.getElementById('moodCats');
+let currentMoodCat = 'faces';
+const targetDateInput = document.getElementById('targetDateInput');
 
-// 表情分类数据（参考微信表情）
-const MOOD_CATEGORIES = {
-  faces: { label: '😊', emojis: ['😀','😁','😂','🤣','😃','😄','😅','😆','😉','😊','😋','😎','😍','😘','🥰','😗','😙','😚','🙂','🤗','🤩','🤔','🤨','😐','😑','😶','😏','😒','🙄','😬','🤥','🤫','🤭','🥱','😪','😴','😷','🤒','🤕','🤢','🤮','🤧','🥵','🥶','🥴','😵','🤯','🤠','🥳','😺','😸','😹','😻','😼','😽','🙀','😿','😾','👽','👻','🤖'] },
-  animals: { label: '🐾', emojis: ['🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🙈','🙉','🙊','🐔','🐧','🐦','🐤','🐣','🐥','🦆','🦅','🦉','🐺','🐗','🐴','🦄','🐝','🐛','🦋','🐌','🐞','🐢','🐙','🦀','🐠','🐟','🐬','🐳','🐋','🦈'] },
-  food: { label: '🍎', emojis: ['🍏','🍎','🍐','🍊','🍋','🍌','🍉','🍇','🍓','🍈','🍒','🍑','🥭','🍍','🥥','🥝','🍅','🍆','🥑','🥦','🥬','🥒','🌽','🥕','🍞','🥐','🥖','🍔','🍟','🍕','🍖','🍗','🍜','🍝','🍣','🍤','🍚','🍙','🍦','🍰','🎂','🍫','🍬','🍭','🍿','🥤','☕','🍺'] },
-  activity: { label: '⚽', emojis: ['⚽','🏀','🏈','⚾','🎾','🏐','🏉','🎱','🏓','🏸','🥊','🥋','⛳','🎣','🎽','🏃','🚴','🏊','🎿','🛷','🏹','🎯','🎮','🎲','🎳','🧘','🏋️','🤸','🚵','🏇','🧗','🤺','⛸️'] },
-  travel: { label: '🚗', emojis: ['🚗','🚕','🚙','🚌','🚎','🏎️','🚓','🚑','🚒','🚐','🛴','🚲','🛵','🏍️','🚂','✈️','🚀','🛸','🚁','⛵','🚤','🛳️','⚓','🚢','🚉','🛣️','🗺️','🧭'] },
-  hearts: { label: '❤️', emojis: ['❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❣️','💕','💞','💓','💗','💖','💘','💝','💟','💜','💋','💌'] },
-  nature: { label: '☀️', emojis: ['☀️','🌤️','⛅','🌥️','☁️','🌦️','🌧️','⛈️','🌩️','🌨️','❄️','☃️','💨','💧','💦','☔','☂️','🌈','⭐','🌟','✨','⚡','🔥','💥','💫','🌙','🌸','🌺','🌻','🌹','🌷','🌼','🍀','🌿','🌳','🌊','🏔️'] },
-  other: { label: '✨', emojis: ['👏','🙌','🤝','👍','👎','👊','✊','🤛','🤜','🤞','✌️','🤟','🤘','👌','🤏','👈','👉','👆','👇','☝️','✋','🤚','🖖','👋','🤙','💪','🦾','✍️','🙏','🧠','👀','👂','👃','👅','👄','🫶','💯','🎉','🎊','🎈','🎁','🎀','🏆','🥇','🥈','🥉','💎','🕊️','🌞','💡','📖','📝','⏰','🌹'] }
-};
-
-function initDiaryApp() {
-  entryText = document.getElementById('entryText');
-  imagePreview = document.getElementById('imagePreview');
-  audioPreview = document.getElementById('audioPreview');
-  voiceBtn = document.getElementById('voiceBtn');
-  imageBtn = document.getElementById('imageBtn');
-  imageInput = document.getElementById('imageInput');
-  submitBtn = document.getElementById('submitBtn');
-  timelineContent = document.getElementById('timelineContent');
-  summaryContent = document.getElementById('summaryContent');
-  toastContainer = document.getElementById('toastContainer');
-  dateDisplay = document.getElementById('dateDisplay');
-  moodPicker = document.getElementById('moodPicker');
-  moodTrigger = document.getElementById('moodTrigger');
-  moodPanel = document.getElementById('moodPanel');
-  moodGrid = document.getElementById('moodGrid');
-  moodCats = document.getElementById('moodCats');
-  targetDateInput = document.getElementById('targetDateInput');
-
-  dateDisplay.textContent = getDateDisplay();
-
-  // ===== 表情选择（参考微信） =====
-  // 渲染分类 tab
-  Object.entries(MOOD_CATEGORIES).forEach(([key, cat]) => {
-    const btn = document.createElement('button');
-    btn.className = 'mood-cat' + (key === 'faces' ? ' active' : '');
-    btn.dataset.cat = key;
-    btn.title = cat.label;
-    btn.textContent = cat.label;
-    moodCats.appendChild(btn);
-  });
-  // 默认渲染第一个分类
-  renderMoodGrid('faces');
-
-  let currentMoodCat = 'faces';
-
-  // 点击表情按钮，切换面板显示
-  moodTrigger.addEventListener('click', (e) => {
-    e.stopPropagation();
-    moodPanel.classList.toggle('show');
-    if (moodPanel.classList.contains('show')) renderMoodGrid(currentMoodCat);
-  });
-
-  // 切换分类
-  moodCats.addEventListener('click', (e) => {
-    const btn = e.target.closest('.mood-cat');
-    if (!btn) return;
-    moodCats.querySelectorAll('.mood-cat').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    currentMoodCat = btn.dataset.cat;
-    renderMoodGrid(currentMoodCat);
-  });
-
-  // 点击面板外关闭
-  document.addEventListener('click', (e) => {
-    if (!moodPicker.contains(e.target)) moodPanel.classList.remove('show');
-  });
-
-  // 表情面板渲染函数
-  function renderMoodGrid(catKey) {
-    moodGrid.innerHTML = '';
-    const cat = MOOD_CATEGORIES[catKey];
-    if (!cat) return;
-    cat.emojis.forEach(emoji => {
-      const btn = document.createElement('button');
-      btn.className = 'mood-item' + (emoji === currentMood ? ' selected' : '');
-      btn.textContent = emoji;
-      btn.title = emoji;
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        selectMood(emoji);
-      });
-      moodGrid.appendChild(btn);
-    });
-  }
-
-  // 选中表情：插入输入框 + 记录心情 + 关闭面板
-  function selectMood(emoji) {
-    currentMood = emoji;
-    moodTrigger.textContent = emoji;
-    moodPanel.classList.remove('show');
-    // 将表情插入输入框光标位置
-    const textarea = entryText;
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    textarea.value = textarea.value.substring(0, start) + emoji + textarea.value.substring(end);
-    textarea.focus();
-    textarea.setSelectionRange(start + emoji.length, start + emoji.length);
-    // 触发 input 事件，让文本区域自动调整高度
-    textarea.dispatchEvent(new Event('input'));
-  }
-
-  // 日期选择器
-  targetDateInput.value = getTodayStr();
-  targetDateInput.addEventListener('change', () => {
-    currentDate = targetDateInput.value;
-    if (currentDate !== getTodayStr()) {
-      targetDateInput.classList.add('is-backdated');
-      submitBtn.textContent = '✏️ 补记到 ' + currentDate;
-    } else {
-      targetDateInput.classList.remove('is-backdated');
-      submitBtn.textContent = '✏️ 记录';
-    }
-  });
-
-  // 图片
-  imageBtn.addEventListener('click', () => imageInput.click());
-  imageInput.addEventListener('change', async (e) => {
-    const files = Array.from(e.target.files);
-    for (const file of files) {
-      const dataUrl = await compressImage(file);
-      pendingImages.push({ dataUrl });
-    }
-    imageInput.value = '';
-    renderImagePreviews();
-  });
-
-  // 录音
-  voiceBtn.addEventListener('click', () => {
-    if (isRecording) stopRecording(); else startRecording();
-  });
-
-  // 提交
-  submitBtn.addEventListener('click', submitEntry);
-
-  // textarea 自动高度
-  entryText.addEventListener('input', () => {
-    entryText.style.height = 'auto';
-    entryText.style.height = Math.min(entryText.scrollHeight, 200) + 'px';
-  });
-
-  // 标签页
-  document.querySelectorAll('.tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      currentTab = tab.dataset.tab;
-      if (currentTab === 'timeline') {
-        timelineContent.style.display = 'block';
-        summaryContent.style.display = 'none';
-        renderTimeline();
-      } else {
-        timelineContent.style.display = 'none';
-        summaryContent.style.display = 'block';
-        renderSummary();
-      }
-    });
-  });
-
-  // 快捷键
-  document.addEventListener('keydown', (e) => {
-    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-      e.preventDefault();
-      submitBtn.click();
-    }
-  });
-
-  // 自动生成检查
-  setInterval(checkAutoGenerate, 60000);
-
-  renderTimeline();
-  checkAutoGenerate();
-}
-
-// ==================== 云数据库操作 ====================
-async function cloudAddEntry(entry) {
-  const data = await sbPost('entries', entry);
-  return data[0].id;
-}
-
-async function cloudGetAllEntries() {
-  return await sbGet('entries', 'select=*&order=id.desc&limit=1000');
-}
-
-async function cloudGetEntriesByDate(dateStr) {
-  return await sbGet('entries', `select=*&date=eq.${encodeURIComponent(dateStr)}&order=id.asc&limit=500`);
-}
-
-async function cloudDeleteEntry(entryId) {
-  await sbDelete('entries', `id=eq.${entryId}`);
-}
-
-async function cloudUpdateEntry(entryId, updates) {
-  await sbPatch('entries', `id=eq.${entryId}`, updates);
-}
-
-// ==================== 工具函数 ====================
+// ---------- 工具函数 ----------
 function getTodayStr() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
+
 function getTimeStr() {
   const d = new Date();
   return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
 }
+
 function getDateDisplay() {
   const d = new Date();
   const weekdays = ['日','一','二','三','四','五','六'];
   return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日 星期${weekdays[d.getDay()]}`;
 }
+
 function showToast(msg, type = '') {
   const toast = document.createElement('div');
   toast.className = `toast ${type}`;
   toast.textContent = msg;
   toastContainer.appendChild(toast);
-  setTimeout(() => toast.remove(), 3000);
+  setTimeout(() => toast.remove(), 2500);
 }
-function escapeHtml(str) {
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
-}
+
 function compressImage(file) {
   return new Promise((resolve) => {
     const reader = new FileReader();
@@ -810,11 +865,15 @@ function compressImage(file) {
         const canvas = document.createElement('canvas');
         let { width, height } = img;
         const maxW = 800;
-        if (width > maxW) { height = Math.round(height * maxW / width); width = maxW; }
+        if (width > maxW) {
+          height = Math.round(height * maxW / width);
+          width = maxW;
+        }
         canvas.width = width;
         canvas.height = height;
-        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL('image/jpeg', 0.7));
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', 0.75));
       };
       img.src = e.target.result;
     };
@@ -822,7 +881,108 @@ function compressImage(file) {
   });
 }
 
-// ==================== 图片预览 ====================
+// ---------- 表情选择（微信风格弹出面板） ----------
+const MOOD_CATEGORIES = {
+  faces: { label: '😊', emojis: ['😀','😁','😂','🤣','😃','😄','😅','😆','😉','😊','😋','😎','😍','😘','🥰','😗','😙','😚','🙂','🤗','🤩','🤔','🤨','😐','😑','😶','😏','😒','🙄','😬','🤥','🤫','🤭','🥱','😪','😴','😷','🤒','🤕','🤢','🤮','🤧','🥵','🥶','🥴','😵','🤯','🤠','🥳','😺','😸','😹','😻','😼','😽','🙀','😿','😾','👽','👻','🤖'] },
+  animals: { label: '🐾', emojis: ['🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🙈','🙉','🙊','🐔','🐧','🐦','🐤','🐣','🐥','🦆','🦅','🦉','🐺','🐗','🐴','🦄','🐝','🐛','🦋','🐌','🐞','🐢','🐙','🦀','🐠','🐟','🐬','🐳','🐋','🦈'] },
+  food: { label: '🍎', emojis: ['🍏','🍎','🍐','🍊','🍋','🍌','🍉','🍇','🍓','🍈','🍒','🍑','🥭','🍍','🥥','🥝','🍅','🍆','🥑','🥦','🥬','🥒','🌽','🥕','🍞','🥐','🥖','🍔','🍟','🍕','🍖','🍗','🍜','🍝','🍣','🍤','🍚','🍙','🍦','🍰','🎂','🍫','🍬','🍭','🍿','🥤','☕','🍺'] },
+  activity: { label: '⚽', emojis: ['⚽','🏀','🏈','⚾','🎾','🏐','🏉','🎱','🏓','🏸','🥊','🥋','⛳','🎣','🎽','🏃','🚴','🏊','🎿','🛷','🏹','🎯','🎮','🎲','🎳','🧘','🏋️','🤸','🚵','🏇','🧗','🤺','⛸️'] },
+  travel: { label: '🚗', emojis: ['🚗','🚕','🚙','🚌','🚎','🏎️','🚓','🚑','🚒','🚐','🛴','🚲','🛵','🏍️','🚂','✈️','🚀','🛸','🚁','⛵','🚤','🛳️','⚓','🚢','🚉','🛣️','🗺️','🧭'] },
+  hearts: { label: '❤️', emojis: ['❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❣️','💕','💞','💓','💗','💖','💘','💝','💟','💋','💌'] },
+  nature: { label: '☀️', emojis: ['☀️','🌤️','⛅','🌥️','☁️','🌦️','🌧️','⛈️','🌩️','🌨️','❄️','☃️','💨','💧','💦','☔','☂️','🌈','⭐','🌟','✨','⚡','🔥','💥','💫','🌙','🌸','🌺','🌻','🌹','🌷','🌼','🍀','🌿','🌳','🌊','🏔️'] },
+  other: { label: '✨', emojis: ['👏','🙌','🤝','👍','👎','👊','✊','🤛','🤜','🤞','✌️','🤟','🤘','👌','🤏','👈','👉','👆','👇','☝️','✋','🤚','🖖','👋','🤙','💪','🦾','✍️','🙏','🧠','👀','👂','👃','👅','👄','🫶','💯','🎉','🎊','🎈','🎁','🎀','🏆','🥇','🥈','🥉','💎','🕊️','🌞','💡','📖','📝','⏰','🌹'] }
+};
+
+function renderMoodGrid(catKey) {
+  moodGrid.innerHTML = '';
+  const cat = MOOD_CATEGORIES[catKey];
+  if (!cat) return;
+  cat.emojis.forEach(emoji => {
+    const btn = document.createElement('button');
+    btn.className = 'mood-item' + (emoji === currentMood ? ' selected' : '');
+    btn.textContent = emoji;
+    btn.title = emoji;
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      selectMood(emoji);
+    });
+    moodGrid.appendChild(btn);
+  });
+}
+
+function selectMood(emoji) {
+  currentMood = emoji;
+  moodTrigger.textContent = emoji;
+  moodPanel.classList.remove('show');
+  // 将表情插入输入框光标位置
+  const start = entryText.selectionStart;
+  const end = entryText.selectionEnd;
+  entryText.value = entryText.value.substring(0, start) + emoji + entryText.value.substring(end);
+  entryText.focus();
+  entryText.setSelectionRange(start + emoji.length, start + emoji.length);
+  entryText.dispatchEvent(new Event('input'));
+}
+
+// 初始化表情面板：渲染分类栏与默认表情网格
+Object.entries(MOOD_CATEGORIES).forEach(([key, cat]) => {
+  const btn = document.createElement('button');
+  btn.className = 'mood-cat' + (key === 'faces' ? ' active' : '');
+  btn.dataset.cat = key;
+  btn.title = cat.label;
+  btn.textContent = cat.label;
+  moodCats.appendChild(btn);
+});
+renderMoodGrid(currentMoodCat);
+
+// 点击表情按钮，切换面板显示
+moodTrigger.addEventListener('click', (e) => {
+  e.stopPropagation();
+  moodPanel.classList.toggle('show');
+  if (moodPanel.classList.contains('show')) renderMoodGrid(currentMoodCat);
+});
+
+// 切换分类
+moodCats.addEventListener('click', (e) => {
+  const btn = e.target.closest('.mood-cat');
+  if (!btn) return;
+  moodCats.querySelectorAll('.mood-cat').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentMoodCat = btn.dataset.cat;
+  renderMoodGrid(currentMoodCat);
+});
+
+// 点击面板外关闭
+document.addEventListener('click', (e) => {
+  if (!moodPicker.contains(e.target)) moodPanel.classList.remove('show');
+});
+
+// ---------- 日期选择器 ----------
+targetDateInput.value = getTodayStr();
+
+targetDateInput.addEventListener('change', () => {
+  currentDate = targetDateInput.value;
+  if (currentDate !== getTodayStr()) {
+    targetDateInput.classList.add('is-backdated');
+    submitBtn.textContent = '✏️ 补记到 ' + currentDate;
+  } else {
+    targetDateInput.classList.remove('is-backdated');
+    submitBtn.textContent = '✏️ 记录';
+  }
+});
+
+// ---------- 图片处理 ----------
+imageBtn.addEventListener('click', () => imageInput.click());
+
+imageInput.addEventListener('change', async (e) => {
+  const files = Array.from(e.target.files);
+  for (const file of files) {
+    const dataUrl = await compressImage(file);
+    pendingImages.push({ dataUrl, file });
+  }
+  imageInput.value = '';
+  renderImagePreviews();
+});
+
 function renderImagePreviews() {
   imagePreview.innerHTML = pendingImages.map((img, i) => `
     <div class="image-preview-item">
@@ -830,22 +990,28 @@ function renderImagePreviews() {
       <button class="remove-img" data-index="${i}">✕</button>
     </div>
   `).join('');
+
   imagePreview.querySelectorAll('.remove-img').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
-      pendingImages.splice(parseInt(btn.dataset.index), 1);
+      const idx = parseInt(btn.dataset.index);
+      pendingImages.splice(idx, 1);
       renderImagePreviews();
     });
   });
 }
 
-// ==================== 录音 ====================
+// ---------- 语音录制 ----------
 async function startRecording() {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm;codecs=opus' });
     audioChunks = [];
-    mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) audioChunks.push(e.data); };
+
+    mediaRecorder.ondataavailable = (e) => {
+      if (e.data.size > 0) audioChunks.push(e.data);
+    };
+
     mediaRecorder.onstop = () => {
       const blob = new Blob(audioChunks, { type: 'audio/webm' });
       const reader = new FileReader();
@@ -856,15 +1022,18 @@ async function startRecording() {
       reader.readAsDataURL(blob);
       stream.getTracks().forEach(t => t.stop());
     };
+
     mediaRecorder.start();
     isRecording = true;
     voiceBtn.classList.add('btn-recording');
     voiceBtn.innerHTML = '<span class="recording-dot"></span> 录制中';
     showToast('🎙️ 正在录音...');
   } catch (err) {
-    showToast('无法访问麦克风，请检查权限', 'error');
+    console.error('麦克风访问失败:', err);
+    showToast('无法访问麦克风，请检查权限设置', 'error');
   }
 }
+
 function stopRecording() {
   if (mediaRecorder && mediaRecorder.state === 'recording') {
     mediaRecorder.stop();
@@ -874,73 +1043,105 @@ function stopRecording() {
     showToast('✅ 录音完成', 'success');
   }
 }
+
+voiceBtn.addEventListener('click', () => {
+  if (isRecording) {
+    stopRecording();
+  } else {
+    startRecording();
+  }
+});
+
 function renderAudioPreview() {
-  if (!pendingAudio) { audioPreview.innerHTML = ''; return; }
+  if (!pendingAudio) {
+    audioPreview.innerHTML = '';
+    return;
+  }
   audioPreview.innerHTML = `
     <div class="audio-preview">
       🎵 语音记录
       <audio controls src="${pendingAudio.dataUrl}"></audio>
-      <button class="btn btn-icon btn-danger" id="removeAudio" style="width:28px;height:28px;font-size:12px">✕</button>
-    </div>`;
+      <button class="btn btn-icon btn-danger" id="removeAudio" style="width:28px;height:28px;font-size:12px;">✕</button>
+    </div>
+  `;
   document.getElementById('removeAudio').addEventListener('click', () => {
-    pendingAudio = null; renderAudioPreview();
+    pendingAudio = null;
+    renderAudioPreview();
   });
 }
 
-// ==================== 提交记录 ====================
-async function submitEntry() {
+// ---------- 提交记录 ----------
+submitBtn.addEventListener('click', async () => {
   const text = entryText.value.trim();
-  if (!text && pendingImages.length === 0 && !pendingAudio) {
-    showToast('请至少输入文字、添加图片或录制语音', 'error'); return;
-  }
+  const hasImage = pendingImages.length > 0;
+  const hasAudio = !!pendingAudio;
 
-  submitBtn.disabled = true;
-  submitBtn.textContent = '保存中...';
+  if (!text && !hasImage && !hasAudio) {
+    showToast('请至少输入文字、添加图片或录制语音', 'error');
+    return;
+  }
 
   const entry = {
     id: Date.now(),
     date: currentDate,
     time: getTimeStr(),
-    text, mood: currentMood,
+    text: text,
+    mood: currentMood,
     images: pendingImages.map(img => img.dataUrl),
     audio: pendingAudio ? pendingAudio.dataUrl : null,
     type: 'entry'
   };
 
   try {
-    await cloudAddEntry(entry);
+    await addEntry(entry);
     // 重置
-    entryText.value = ''; pendingImages = []; pendingAudio = null;
-    currentMood = '😐'; currentDate = getTodayStr();
+    entryText.value = '';
+    pendingImages = [];
+    pendingAudio = null;
+    currentMood = '😐';
+    currentDate = getTodayStr();
     targetDateInput.value = getTodayStr();
     targetDateInput.classList.remove('is-backdated');
-    submitBtn.textContent = '✏️ 记录'; submitBtn.disabled = false;
+    submitBtn.textContent = '✏️ 记录';
     moodTrigger.textContent = '😐';
-    renderImagePreviews(); renderAudioPreview();
+    renderImagePreviews();
+    renderAudioPreview();
     entryText.style.height = 'auto';
+
     showToast('✅ 记录已保存', 'success');
     await refreshView();
   } catch (err) {
     console.error('保存失败:', err);
-    showToast('保存失败，请检查网络', 'error');
-    submitBtn.disabled = false;
-    submitBtn.textContent = currentDate !== getTodayStr() ? '✏️ 补记到 ' + currentDate : '✏️ 记录';
+    showToast('保存失败，请重试', 'error');
   }
-}
+});
 
-// ==================== 渲染时间线 ====================
+// 自动调整 textarea 高度
+entryText.addEventListener('input', () => {
+  entryText.style.height = 'auto';
+  entryText.style.height = Math.min(entryText.scrollHeight, 200) + 'px';
+});
+
+// ---------- 渲染时间线 ----------
 async function renderTimeline() {
-  const entries = await cloudGetAllEntries();
-  const normalEntries = entries.filter(e => e.type === 'entry');
+  const entries = await getAllEntries();
+  // 过滤出普通记录，按日期分组
+  const normalEntries = entries
+    .filter(e => e.type === 'entry')
+    .sort((a, b) => b.id - a.id);
 
   if (normalEntries.length === 0) {
     timelineContent.innerHTML = `
       <div class="empty-state">
-        <div class="icon">📝</div><p>还没有任何记录</p>
+        <div class="icon">📝</div>
+        <p>还没有任何记录</p>
         <p class="sub">在上方写下你的想法、上传图片或录制语音吧</p>
-      </div>`; return;
+      </div>
+    `;
+    return;
   }
 
+  // 按日期分组
   const groups = {};
   normalEntries.forEach(e => {
     if (!groups[e.date]) groups[e.date] = [];
@@ -948,310 +1149,351 @@ async function renderTimeline() {
   });
 
   let html = '';
-  const sortedDates = Object.keys(groups).sort((a, b) => b.localeCompare(a));
-  sortedDates.forEach(date => {
-    html += `<div class="section-title">${formatDateLabel(date)}</div>`;
-    groups[date].sort((a, b) => b.id - a.id).forEach(entry => {
+  for (const [date, dayEntries] of Object.entries(groups)) {
+    const dateLabel = formatDateLabel(date);
+    html += `<div class="section-title">${dateLabel}</div>`;
+    dayEntries.forEach(entry => {
       html += renderEntryCard(entry);
     });
-  });
+  }
   timelineContent.innerHTML = html;
+
+  // 绑定事件
   bindEntryCardEvents();
 }
 
 function formatDateLabel(dateStr) {
   const today = getTodayStr();
-  const d = new Date(dateStr + 'T00:00:00');
+  const d = new Date(dateStr);
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
-  const ys = `${yesterday.getFullYear()}-${String(yesterday.getMonth()+1).padStart(2,'0')}-${String(yesterday.getDate()).padStart(2,'0')}`;
+  const yesterdayStr = `${yesterday.getFullYear()}-${String(yesterday.getMonth()+1).padStart(2,'0')}-${String(yesterday.getDate()).padStart(2,'0')}`;
+
   const weekdays = ['日','一','二','三','四','五','六'];
   const label = `${d.getMonth()+1}月${d.getDate()}日 星期${weekdays[d.getDay()]}`;
+
   if (dateStr === today) return `📌 今天 · ${label}`;
-  if (dateStr === ys) return `📌 昨天 · ${label}`;
+  if (dateStr === yesterdayStr) return `📌 昨天 · ${label}`;
   return `📅 ${label}`;
 }
 
-// ==================== 原地编辑功能 ====================
-function startEditEntry(entryId) {
-  const textEl = document.querySelector(`[data-edit-text="${entryId}"]`);
-  if (!textEl) return;
-  // 如果已经在编辑中，不重复进入
-  if (textEl.querySelector('.edit-textarea')) return;
-
-  const card = textEl.closest('.entry-card');
-  // 隐藏编辑/删除按钮
-  card.querySelector('.entry-edit').style.display = 'none';
-  card.querySelector('.entry-delete').style.display = 'none';
-
-  const originalText = textEl.textContent;
-  textEl.innerHTML = `<textarea class="edit-textarea" rows="4">${originalText}</textarea>
-    <div class="edit-actions">
-      <button class="btn-save" onclick="window.saveEditEntry(${entryId})">💾 保存</button>
-      <button class="btn-cancel" onclick="window.cancelEditEntry(${entryId}, \`${escapeJs(originalText)}\`)">取消</button>
-    </div>`;
-
-  // 自动聚焦
-  const textarea = textEl.querySelector('.edit-textarea');
-  textarea.focus();
-  textarea.setSelectionRange(textarea.value.length, textarea.value.length);
-}
-
-async function saveEditEntry(entryId) {
-  const textEl = document.querySelector(`[data-edit-text="${entryId}"]`);
-  if (!textEl) return;
-  const textarea = textEl.querySelector('.edit-textarea');
-  const newText = textarea.value.trim();
-  const originalText = textEl.getAttribute('data-original') || '';
-
-  try {
-    await cloudUpdateEntry(entryId, { text: newText });
-    showToast('✅ 修改已保存', 'success');
-    await refreshView();
-  } catch (err) {
-    showToast('❌ 保存失败，请重试', 'error');
-    // 恢复原来的编辑状态
-    const card = textEl.closest('.entry-card');
-    card.querySelector('.entry-edit').style.display = '';
-    card.querySelector('.entry-delete').style.display = '';
-  }
-}
-
-function cancelEditEntry(entryId, originalText) {
-  const textEl = document.querySelector(`[data-edit-text="${entryId}"]`);
-  if (!textEl) return;
-  textEl.textContent = originalText;
-
-  const card = textEl.closest('.entry-card');
-  card.querySelector('.entry-edit').style.display = '';
-  card.querySelector('.entry-delete').style.display = '';
-}
-
-function escapeJs(str) {
-  return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/`/g, '\\`').replace(/\n/g, '\\n');
-}
-
 function renderEntryCard(entry) {
-  let card = `<div class="entry-card" data-id="${entry.id}" data-entryid="${entry.id}">
-    <div class="entry-time"><span>🕐 ${entry.time}</span><span>${entry.mood}</span></div>
-    <button class="entry-edit" data-edit="${entry.id}">✏️</button>
-    <button class="entry-delete" data-delete="${entry.id}">🗑️</button>`;
-  if (entry.text) card += `<div class="entry-text" data-edit-text="${entry.id}">${escapeHtml(entry.text)}</div>`;
+  let card = `
+    <div class="entry-card" data-id="${entry.id}">
+      <div class="entry-time">
+        <span>🕐 ${entry.time}</span>
+        <span class="entry-mood">${entry.mood}</span>
+      </div>
+      <button class="entry-delete" data-delete="${entry.id}">🗑️</button>
+  `;
+
+  if (entry.text) {
+    card += `<div class="entry-text">${escapeHtml(entry.text)}</div>`;
+  }
+
   if (entry.images && entry.images.length > 0) {
     entry.images.forEach(img => {
       card += `<img class="entry-image" src="${img}" alt="日记图片" data-lightbox="${img}">`;
     });
   }
+
   if (entry.audio) {
-    card += `<div class="entry-audio">🎵 语音记录 <audio controls src="${entry.audio}"></audio></div>`;
+    card += `
+      <div class="entry-audio">
+        🎵 语音记录
+        <audio controls src="${entry.audio}"></audio>
+      </div>
+    `;
   }
-  card += '</div>';
+
+  card += `</div>`;
   return card;
 }
 
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
 function bindEntryCardEvents() {
-  // 编辑按钮
-  timelineContent.querySelectorAll('.entry-edit').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      startEditEntry(parseInt(btn.dataset.edit));
-    });
-  });
   // 删除按钮
   timelineContent.querySelectorAll('.entry-delete').forEach(btn => {
     btn.addEventListener('click', async (e) => {
       e.stopPropagation();
+      const id = parseInt(btn.dataset.delete);
       if (confirm('确定要删除这条记录吗？')) {
-        await cloudDeleteEntry(parseInt(btn.dataset.delete));
+        await deleteEntry(id);
         showToast('已删除', 'success');
         await refreshView();
       }
     });
   });
+
+  // 图片灯箱
   timelineContent.querySelectorAll('.entry-image').forEach(img => {
     img.addEventListener('click', () => {
-      const lb = document.createElement('div');
-      lb.className = 'lightbox';
-      lb.innerHTML = `<img src="${img.dataset.lightbox}" alt="大图">`;
-      lb.addEventListener('click', () => lb.remove());
-      document.body.appendChild(lb);
+      const lightbox = document.createElement('div');
+      lightbox.className = 'lightbox';
+      lightbox.innerHTML = `<img src="${img.dataset.lightbox}" alt="大图">`;
+      lightbox.addEventListener('click', () => lightbox.remove());
+      document.body.appendChild(lightbox);
     });
   });
 }
 
-// ==================== 总结 ====================
+// ---------- 渲染总结 ----------
 async function renderSummary() {
-  const entries = await cloudGetAllEntries();
-  const summaries = entries.filter(e => e.type === 'summary').sort((a, b) => b.id - a.id);
+  const allEntries = await getAllEntries();
+  const summaries = allEntries
+    .filter(e => e.type === 'summary')
+    .sort((a, b) => b.id - a.id);
 
   if (summaries.length === 0) {
     summaryContent.innerHTML = `
-      <div class="empty-state"><div class="icon">📔</div><p>还没有生成的日记总结</p>
-      <p class="sub">记录足够多后，点击生成每日总结</p></div>
-      <div class="generate-area"><button class="btn btn-primary generate-btn" onclick="window.generateTodaySummary()">✨ 生成今日日记总结</button></div>`;
+      <div class="empty-state">
+        <div class="icon">📔</div>
+        <p>还没有生成的日记总结</p>
+        <p class="sub">记录足够多的内容后，点击按钮生成每日总结</p>
+      </div>
+      <div class="generate-area">
+        <button class="btn btn-primary generate-btn" onclick="generateTodaySummary()">
+          ✨ 生成今日日记总结
+        </button>
+      </div>
+    `;
     return;
   }
 
   let html = '';
-  summaries.forEach(s => {
-    html += `<div class="summary-card">
-      <div class="summary-date">${formatDateLabel(s.date)} <span class="summary-auto-badge">自动生成</span></div>
-      <div class="summary-content">${escapeHtml(s.content)}</div>
-      ${s.stats ? `<div class="summary-stats">
-        <span>📝 ${s.stats.textCount||0} 条文字</span>
-        <span>🖼️ ${s.stats.imageCount||0} 张图片</span>
-        <span>🎵 ${s.stats.audioCount||0} 条语音</span>
-      </div>` : ''}
-    </div>`;
+  summaries.forEach(summary => {
+    const dateLabel = formatDateLabel(summary.date);
+    html += `
+      <div class="summary-card">
+        <div class="summary-date">
+          ${dateLabel}
+          <span class="summary-auto-badge">自动生成</span>
+        </div>
+        <div class="summary-content">${escapeHtml(summary.content)}</div>
+        ${summary.stats ? `
+        <div class="summary-stats">
+          <span>📝 ${summary.stats.textCount || 0} 条文字</span>
+          <span>🖼️ ${summary.stats.imageCount || 0} 张图片</span>
+          <span>🎵 ${summary.stats.audioCount || 0} 条语音</span>
+        </div>` : ''}
+      </div>
+    `;
   });
 
+  // 如果今天还没总结，显示生成按钮
   const todaySummary = summaries.find(s => s.date === getTodayStr());
-  html += `<div class="generate-area">
-    <button class="btn btn-primary generate-btn" onclick="window.generateTodaySummary()">${todaySummary ? '🔄 重新生成今日总结' : '✨ 生成今日日记总结'}</button>
-    <div class="auto-info">💡 发布新内容后点此更新总结 · 每晚 23:30 也会自动生成</div>
-  </div>`;
+  if (!todaySummary) {
+    html += `
+      <div class="generate-area">
+        <button class="btn btn-primary generate-btn" onclick="generateTodaySummary()">
+          ✨ 生成今日日记总结
+        </button>
+        <div class="auto-info">💡 每晚 23:30 会自动为你生成今日总结</div>
+      </div>
+    `;
+  }
 
   summaryContent.innerHTML = html;
 }
 
+// ---------- 生成每日总结 ----------
 async function generateTodaySummary() {
-  await generateSummaryForDate(getTodayStr());
-  showToast('✨ 今日日记总结已生成！', 'success');
-}
+  const today = getTodayStr();
+  const entries = await getEntriesByDate(today);
 
-async function generateSummaryForDate(dateStr, silent = false) {
-  const entries = await cloudGetEntriesByDate(dateStr);
-  if (entries.length === 0) return;
+  if (entries.length === 0) {
+    showToast('今天还没有任何记录，先去记录点什么吧~', 'error');
+    return;
+  }
 
+  // 按时间排序
+  entries.sort((a, b) => a.time.localeCompare(b.time));
+
+  // 统计
   const textCount = entries.filter(e => e.text).length;
   const imageCount = entries.filter(e => e.images && e.images.length > 0).length;
   const audioCount = entries.filter(e => e.audio).length;
 
+  // 心情统计
   const moodMap = {};
-  entries.forEach(e => { moodMap[e.mood] = (moodMap[e.mood]||0)+1; });
-  const dominantMood = Object.entries(moodMap).sort((a,b) => b[1]-a[1])[0][0];
+  entries.forEach(e => {
+    moodMap[e.mood] = (moodMap[e.mood] || 0) + 1;
+  });
+  const dominantMood = Object.entries(moodMap).sort((a, b) => b[1] - a[1])[0][0];
 
-  const timeSlots = { morning:[], noon:[], afternoon:[], evening:[], night:[] };
+  // 时间段分类
+  const timeSlots = {
+    morning: [],
+    noon: [],
+    afternoon: [],
+    evening: [],
+    night: []
+  };
   entries.forEach(e => {
     const h = parseInt(e.time.split(':')[0]);
-    if (h<8) timeSlots.night.push(e);
-    else if (h<12) timeSlots.morning.push(e);
-    else if (h<14) timeSlots.noon.push(e);
-    else if (h<18) timeSlots.afternoon.push(e);
-    else if (h<22) timeSlots.evening.push(e);
+    if (h < 8) timeSlots.night.push(e);
+    else if (h < 12) timeSlots.morning.push(e);
+    else if (h < 14) timeSlots.noon.push(e);
+    else if (h < 18) timeSlots.afternoon.push(e);
+    else if (h < 22) timeSlots.evening.push(e);
     else timeSlots.night.push(e);
   });
 
-  // 格式化日期显示
-  const d = new Date(dateStr + 'T00:00:00');
-  const weekdays = ['日','一','二','三','四','五','六'];
-  const dateLabel = `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日 星期${weekdays[d.getDay()]}`;
+  // 生成总结内容
+  const moodLabel = {
+    '😊': '开心', '😐': '平静', '😢': '有些难过',
+    '😡': '有点生气', '🤩': '非常兴奋'
+  };
 
-  const moodLabel = {'😊':'开心','😐':'平静','😢':'有些难过','😡':'有点生气','🤩':'非常兴奋'};
-  let summary = `${dateLabel}\n\n`;
-  summary += `整体心情偏向${moodLabel[dominantMood]||dominantMood}，共 ${entries.length} 条记录：${textCount} 段文字、${imageCount} 张图片、${audioCount} 条语音。\n\n`;
+  let summary = `今天是${today.replace(/-/g, '年').replace(/(\d+)年(\d+)年/, '$1年$2月')}日。\n\n`;
+  summary += `整体心情偏向${moodLabel[dominantMood] || dominantMood}，共记录了 ${entries.length} 条内容：${textCount} 段文字、${imageCount} 张图片、${audioCount} 条语音。\n\n`;
 
-  const slotLabels = {morning:'🌅 清晨',noon:'☀️ 中午',afternoon:'🌤️ 下午',evening:'🌆 傍晚',night:'🌙 夜晚'};
+  const slotLabels = { morning: '🌅 清晨', noon: '☀️ 中午', afternoon: '🌤️ 下午', evening: '🌆 傍晚', night: '🌙 夜晚' };
   for (const [slot, slotEntries] of Object.entries(timeSlots)) {
     if (slotEntries.length === 0) continue;
     summary += `${slotLabels[slot]}：\n`;
     slotEntries.forEach(e => {
-      let line = `  · ${e.time} `;
-      if (e.text) line += `"${e.text.length>60?e.text.substring(0,60)+'...':e.text}"`;
-      if (e.images&&e.images.length) line += ` [${e.images.length}张图片]`;
-      if (e.audio) line += ' [语音]';
-      line += ` ${e.mood}`;
+      const timeStr = `${e.time}`;
+      let line = `  · ${timeStr} `;
+      if (e.text) {
+        const shortText = e.text.length > 60 ? e.text.substring(0, 60) + '...' : e.text;
+        line += `记录了想法"${shortText}"`;
+      }
+      if (e.images && e.images.length > 0) {
+        line += ` [附${e.images.length}张图片]`;
+      }
+      if (e.audio) {
+        line += ` [语音记录]`;
+      }
+      if (!e.text && !e.images && !e.audio) {
+        line += '记录了一条内容';
+      }
+      line += ` 心情${e.mood}`;
       summary += line + '\n';
     });
     summary += '\n';
   }
 
-  if (entries.length <= 2) summary += '虽然不多，但每一天都值得被记录。明天继续加油！';
-  else if (entries.length <= 5) summary += '平凡而充实的一天，好好休息，明天会更好。';
-  else summary += '非常充实的一天！记录了这么多珍贵的瞬间，真棒！';
+  summary += `\n今天共记录了 ${entries.length} 条内容。`;
+  if (entries.length <= 2) {
+    summary += '虽然不多，但每一天都值得被记录。明天继续加油！';
+  } else if (entries.length <= 5) {
+    summary += '平凡而充实的一天，好好休息，明天会更好。';
+  } else {
+    summary += '非常充实的一天！记录了这么多珍贵的瞬间，真棒！';
+  }
 
-  // 删除旧总结
-  const allEntries = await cloudGetAllEntries();
-  const existingSummary = allEntries.find(e => e.type==='summary' && e.date===dateStr);
-  if (existingSummary) await cloudDeleteEntry(existingSummary.id);
+  // 保存总结
+  // 先检查是否已有今天的总结，有则删除旧的
+  const allEntries = await getAllEntries();
+  const existingSummary = allEntries.find(e => e.type === 'summary' && e.date === today);
+  if (existingSummary) {
+    await deleteEntry(existingSummary.id);
+  }
 
-  await cloudAddEntry({
-    id: Date.now(), date: dateStr, time: '23:30',
-    content: summary, type: 'summary',
+  const summaryEntry = {
+    id: Date.now(),
+    date: today,
+    time: getTimeStr(),
+    content: summary,
+    type: 'summary',
     stats: { textCount, imageCount, audioCount }
-  });
+  };
 
-  if (!silent) await refreshView();
+  await addEntry(summaryEntry);
+  showToast('✨ 今日日记总结已生成！', 'success');
+  await refreshView();
 }
 
-// ==================== 自动生成 ====================
-const AUTO_GEN_HOUR = 23, AUTO_GEN_MINUTE = 30;
+// ---------- 自动生成检查 ----------
+const AUTO_GEN_HOUR = 23;
+const AUTO_GEN_MINUTE = 30;
 let autoGenChecked = false;
 
-async function checkAutoGenerate() {
+function checkAutoGenerate() {
   const now = new Date();
   const today = getTodayStr();
-  const h = now.getHours(), m = now.getMinutes();
+  const hour = now.getHours();
+  const minute = now.getMinutes();
 
-  // 1. 页面打开时补漏：检查是否有任何日期有日记但没总结
-  await catchupMissingSummaries();
+  // 在23:30之后且今天还没检查过
+  const pastTriggerTime = (hour > AUTO_GEN_HOUR) || (hour === AUTO_GEN_HOUR && minute >= AUTO_GEN_MINUTE);
 
-  // 2. 每晚 23:30 实时检查今天的总结
-  const pastTrigger = (h > AUTO_GEN_HOUR) || (h === AUTO_GEN_HOUR && m >= AUTO_GEN_MINUTE);
-  if (pastTrigger && !autoGenChecked) {
+  if (pastTriggerTime && !autoGenChecked) {
     autoGenChecked = true;
     setTimeout(async () => {
-      const entries = await cloudGetAllEntries();
-      if (!entries.some(e => e.type==='summary' && e.date===today)
-          && entries.some(e => e.type==='entry' && e.date===today)) {
-        await generateSummaryForDate(today, true);
+      const allEntries = await getAllEntries();
+      const hasTodaySummary = allEntries.some(e => e.type === 'summary' && e.date === today);
+      const hasTodayEntries = allEntries.some(e => e.type === 'entry' && e.date === today);
+
+      if (!hasTodaySummary && hasTodayEntries) {
+        await generateTodaySummary();
         showToast('🌙 已自动为你生成今日日记总结', 'success');
-        // 记录已生成
-        localStorage.setItem('diary_last_autogen', today);
-        await refreshView();
       }
-    }, 30000);
+    }, 30000); // 延迟30秒
   }
-  if (h < AUTO_GEN_HOUR) autoGenChecked = false;
+
+  // 过了午夜重置检查标记
+  if (hour < AUTO_GEN_HOUR) {
+    autoGenChecked = false;
+  }
 }
 
-// 补漏：找出所有有日记但没总结的日期，自动生成
-async function catchupMissingSummaries() {
-  const entries = await cloudGetAllEntries();
-  const entryDates = new Set();
-  const summaryDates = new Set();
+// 每分钟检查一次
+setInterval(checkAutoGenerate, 60000);
 
-  entries.forEach(e => {
-    if (e.type === 'entry' && e.date) entryDates.add(e.date);
-    if (e.type === 'summary' && e.date) summaryDates.add(e.date);
-  });
+// ---------- 标签页切换 ----------
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    currentTab = tab.dataset.tab;
 
-  const missingDates = [...entryDates].filter(d => !summaryDates.has(d) && d !== getTodayStr());
-  if (missingDates.length === 0) return;
-
-  for (const date of missingDates.sort()) {
-    try {
-      await generateSummaryForDate(date, true);
-    } catch (e) {
-      console.error('补漏失败', date, e);
+    if (currentTab === 'timeline') {
+      timelineContent.style.display = 'block';
+      summaryContent.style.display = 'none';
+      renderTimeline();
+    } else {
+      timelineContent.style.display = 'none';
+      summaryContent.style.display = 'block';
+      renderSummary();
     }
-  }
-  if (missingDates.length > 0) {
-    await refreshView();
-    showToast(`📝 已为 ${missingDates.length} 天补生成日记总结`, 'success');
-  }
-}
+  });
+});
 
+// ---------- 刷新视图 ----------
 async function refreshView() {
-  if (currentTab === 'timeline') await renderTimeline();
-  else await renderSummary();
+  if (currentTab === 'timeline') {
+    await renderTimeline();
+  } else {
+    await renderSummary();
+  }
 }
 
-// ==================== 启动 ====================
+// ---------- 键盘快捷键 ----------
+document.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+    e.preventDefault();
+    submitBtn.click();
+  }
+});
+
+// ---------- 初始化 ----------
+async function init() {
+  dateDisplay.textContent = getDateDisplay();
+  await renderTimeline();
+  checkAutoGenerate();
+}
+
+// 全局函数供 onclick 使用
 window.generateTodaySummary = generateTodaySummary;
 
-// 无需外部SDK，页面秒开！
-showAuthPage();
+init();
 </script>
 </body>
 </html>
