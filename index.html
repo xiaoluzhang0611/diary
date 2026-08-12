@@ -146,13 +146,17 @@ body{
 .mood-trigger{transition:var(--transition)}
 .mood-trigger:hover{transform:scale(1.15)}
 .mood-panel{
-  position:absolute;bottom:calc(100% + 8px);left:50%;z-index:100;
-  width:320px;max-width:calc(100vw - 32px);transform:translateX(-50%);
+  position:absolute;left:50%;z-index:100;
+  width:320px;max-width:calc(100vw - 48px);transform:translateX(-50%);
   background:var(--card-bg);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);
   padding:10px;display:none;box-sizing:border-box
 }
-.mood-panel.show{display:block;animation:popIn .15s ease}
-@keyframes popIn{from{opacity:0;transform:translateX(-50%) translateY(8px) scale(.96)}to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
+/* 默认向下展开；空间不足时通过 JS 切换为向上 */
+.mood-panel.down{top:calc(100% + 8px);bottom:auto;animation:popInDown .15s ease}
+.mood-panel.up{bottom:calc(100% + 8px);top:auto;animation:popInUp .15s ease}
+.mood-panel.show{display:block}
+@keyframes popInDown{from{opacity:0;transform:translateX(-50%) translateY(-8px) scale(.96)}to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
+@keyframes popInUp{from{opacity:0;transform:translateX(-50%) translateY(8px) scale(.96)}to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
 .mood-cats{
   display:flex;gap:2px;margin-bottom:8px;overflow-x:auto;padding-bottom:4px;
   -webkit-overflow-scrolling:touch
@@ -175,7 +179,7 @@ body{
 .mood-item:hover{background:var(--accent-light);transform:scale(1.15)}
 .mood-item.selected{background:var(--accent-light);box-shadow:inset 0 0 0 1.5px var(--accent)}
 @media (max-width:400px){
-  .mood-panel{width:100%;max-width:calc(100vw - 32px)}
+  .mood-panel{width:100%;max-width:calc(100vw - 48px)}
   .mood-cat{min-width:30px;height:30px;font-size:18px}
   .mood-grid{grid-template-columns:repeat(7,1fr)}
   .mood-item{font-size:20px}
@@ -650,11 +654,30 @@ function initDiaryApp() {
 
   let currentMoodCat = 'faces';
 
+  // 根据屏幕空间决定表情面板向上还是向下展开
+  function positionMoodPanel() {
+    const rect = moodTrigger.getBoundingClientRect();
+    const panelHeight = 260; // 面板展开后的大概高度
+    const spaceAbove = rect.top;
+    const spaceBelow = window.innerHeight - rect.bottom;
+    moodPanel.classList.remove('up', 'down');
+    // 上方空间不够且下方更宽敞时向下展开，否则向上
+    if (spaceAbove < panelHeight && spaceBelow > spaceAbove) {
+      moodPanel.classList.add('down');
+    } else {
+      moodPanel.classList.add('up');
+    }
+  }
+
   // 点击表情按钮，切换面板显示
   moodTrigger.addEventListener('click', (e) => {
     e.stopPropagation();
+    const willShow = !moodPanel.classList.contains('show');
     moodPanel.classList.toggle('show');
-    if (moodPanel.classList.contains('show')) renderMoodGrid(currentMoodCat);
+    if (willShow) {
+      positionMoodPanel();
+      renderMoodGrid(currentMoodCat);
+    }
   });
 
   // 切换分类
