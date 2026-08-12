@@ -141,15 +141,39 @@ body{
 .date-picker:hover{border-color:var(--primary)}
 .date-picker.is-backdated{border-color:var(--accent);background:var(--accent-light);color:var(--primary);font-weight:500}
 
-/* ===== 心情 ===== */
-.mood-selector{display:flex;gap:4px}
-.mood-btn{
-  width:34px;height:34px;border-radius:50%;border:2px solid transparent;background:transparent;
-  font-size:20px;cursor:pointer;transition:var(--transition);
-  display:flex;align-items:center;justify-content:center;padding:0
+/* ===== 表情选择（参考微信样式） ===== */
+.mood-picker{position:relative}
+.mood-trigger{transition:var(--transition)}
+.mood-trigger:hover{transform:scale(1.15)}
+.mood-panel{
+  position:absolute;bottom:calc(100% + 8px);left:0;z-index:100;
+  width:304px;max-width:calc(100vw - 24px);background:var(--card-bg);
+  border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);
+  padding:10px;display:none
 }
-.mood-btn:hover{transform:scale(1.2)}
-.mood-btn.selected{border-color:var(--accent);background:var(--accent-light);transform:scale(1.15)}
+.mood-panel.show{display:block;animation:popIn .15s ease}
+@keyframes popIn{from{opacity:0;transform:translateY(8px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+.mood-cats{
+  display:flex;gap:2px;margin-bottom:8px;overflow-x:auto;padding-bottom:4px;
+  -webkit-overflow-scrolling:touch
+}
+.mood-cat{
+  min-width:34px;height:34px;border-radius:10px;border:none;background:transparent;
+  font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:var(--transition);flex-shrink:0
+}
+.mood-cat:hover{background:var(--accent-light)}
+.mood-cat.active{background:var(--accent-light);box-shadow:inset 0 0 0 1.5px var(--accent)}
+.mood-grid{
+  display:grid;grid-template-columns:repeat(8,1fr);gap:2px;
+  max-height:180px;overflow-y:auto;-webkit-overflow-scrolling:touch
+}
+.mood-item{
+  font-size:22px;padding:6px 0;border:none;background:transparent;cursor:pointer;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;line-height:1;transition:var(--transition)
+}
+.mood-item:hover{background:var(--accent-light);transform:scale(1.15)}
+.mood-item.selected{background:var(--accent-light);box-shadow:inset 0 0 0 1.5px var(--accent)}
 
 /* ===== 日记条目 ===== */
 .section-title{font-size:13px;font-weight:600;color:var(--text-light);text-transform:uppercase;letter-spacing:1px;margin:16px 0 10px;padding-left:4px}
@@ -299,12 +323,12 @@ body{
           <button class="btn btn-icon btn-outline" id="voiceBtn" title="语音记录">🎤</button>
           <button class="btn btn-icon btn-outline" id="imageBtn" title="添加图片">🖼️</button>
           <input type="file" id="imageInput" accept="image/*" style="display:none" multiple>
-          <div class="mood-selector" id="moodSelector">
-            <button class="mood-btn" data-mood="😊" title="开心">😊</button>
-            <button class="mood-btn selected" data-mood="😐" title="一般">😐</button>
-            <button class="mood-btn" data-mood="😢" title="难过">😢</button>
-            <button class="mood-btn" data-mood="😡" title="生气">😡</button>
-            <button class="mood-btn" data-mood="🤩" title="兴奋">🤩</button>
+          <div class="mood-picker" id="moodPicker">
+            <button class="btn btn-icon btn-outline mood-trigger" id="moodTrigger" title="选择表情">😐</button>
+            <div class="mood-panel" id="moodPanel">
+              <div class="mood-cats" id="moodCats"></div>
+              <div class="mood-grid" id="moodGrid"></div>
+            </div>
           </div>
         </div>
         <div class="toolbar-right">
@@ -551,7 +575,19 @@ let currentTab = 'timeline';
 // DOM
 let entryText, imagePreview, audioPreview, voiceBtn, imageBtn, imageInput;
 let submitBtn, timelineContent, summaryContent, targetDateInput;
-let toastContainer, dateDisplay, moodSelector;
+let toastContainer, dateDisplay, moodPicker, moodTrigger, moodPanel, moodGrid, moodCats;
+
+// 表情分类数据（参考微信表情）
+const MOOD_CATEGORIES = {
+  faces: { label: '😊', emojis: ['😀','😁','😂','🤣','😃','😄','😅','😆','😉','😊','😋','😎','😍','😘','🥰','😗','😙','😚','🙂','🤗','🤩','🤔','🤨','😐','😑','😶','😏','😒','🙄','😬','🤥','🤫','🤭','🥱','😪','😴','😷','🤒','🤕','🤢','🤮','🤧','🥵','🥶','🥴','😵','🤯','🤠','🥳','😺','😸','😹','😻','😼','😽','🙀','😿','😾','👽','👻','🤖'] },
+  animals: { label: '🐾', emojis: ['🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🙈','🙉','🙊','🐔','🐧','🐦','🐤','🐣','🐥','🦆','🦅','🦉','🐺','🐗','🐴','🦄','🐝','🐛','🦋','🐌','🐞','🐢','🐙','🦀','🐠','🐟','🐬','🐳','🐋','🦈'] },
+  food: { label: '🍎', emojis: ['🍏','🍎','🍐','🍊','🍋','🍌','🍉','🍇','🍓','🍈','🍒','🍑','🥭','🍍','🥥','🥝','🍅','🍆','🥑','🥦','🥬','🥒','🌽','🥕','🍞','🥐','🥖','🍔','🍟','🍕','🍖','🍗','🍜','🍝','🍣','🍤','🍚','🍙','🍦','🍰','🎂','🍫','🍬','🍭','🍿','🥤','☕','🍺'] },
+  activity: { label: '⚽', emojis: ['⚽','🏀','🏈','⚾','🎾','🏐','🏉','🎱','🏓','🏸','🥊','🥋','⛳','🎣','🎽','🏃','🚴','🏊','🎿','🛷','🏹','🎯','🎮','🎲','🎳','🧘','🏋️','🤸','🚵','🏇','🧗','🤺','⛸️'] },
+  travel: { label: '🚗', emojis: ['🚗','🚕','🚙','🚌','🚎','🏎️','🚓','🚑','🚒','🚐','🛴','🚲','🛵','🏍️','🚂','✈️','🚀','🛸','🚁','⛵','🚤','🛳️','⚓','🚢','🚉','🛣️','🗺️','🧭'] },
+  hearts: { label: '❤️', emojis: ['❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❣️','💕','💞','💓','💗','💖','💘','💝','💟','💜','💋','💌'] },
+  nature: { label: '☀️', emojis: ['☀️','🌤️','⛅','🌥️','☁️','🌦️','🌧️','⛈️','🌩️','🌨️','❄️','☃️','💨','💧','💦','☔','☂️','🌈','⭐','🌟','✨','⚡','🔥','💥','💫','🌙','🌸','🌺','🌻','🌹','🌷','🌼','🍀','🌿','🌳','🌊','🏔️'] },
+  other: { label: '✨', emojis: ['👏','🙌','🤝','👍','👎','👊','✊','🤛','🤜','🤞','✌️','🤟','🤘','👌','🤏','👈','👉','👆','👇','☝️','✋','🤚','🖖','👋','🤙','💪','🦾','✍️','🙏','🧠','👀','👂','👃','👅','👄','🫶','💯','🎉','🎊','🎈','🎁','🎀','🏆','🥇','🥈','🥉','💎','🕊️','🌞','💡','📖','📝','⏰','🌹'] }
+};
 
 function initDiaryApp() {
   entryText = document.getElementById('entryText');
@@ -565,19 +601,85 @@ function initDiaryApp() {
   summaryContent = document.getElementById('summaryContent');
   toastContainer = document.getElementById('toastContainer');
   dateDisplay = document.getElementById('dateDisplay');
-  moodSelector = document.getElementById('moodSelector');
+  moodPicker = document.getElementById('moodPicker');
+  moodTrigger = document.getElementById('moodTrigger');
+  moodPanel = document.getElementById('moodPanel');
+  moodGrid = document.getElementById('moodGrid');
+  moodCats = document.getElementById('moodCats');
   targetDateInput = document.getElementById('targetDateInput');
 
   dateDisplay.textContent = getDateDisplay();
 
-  // 心情选择
-  moodSelector.addEventListener('click', (e) => {
-    const btn = e.target.closest('.mood-btn');
-    if (!btn) return;
-    moodSelector.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
-    btn.classList.add('selected');
-    currentMood = btn.dataset.mood;
+  // ===== 表情选择（参考微信） =====
+  // 渲染分类 tab
+  Object.entries(MOOD_CATEGORIES).forEach(([key, cat]) => {
+    const btn = document.createElement('button');
+    btn.className = 'mood-cat' + (key === 'faces' ? ' active' : '');
+    btn.dataset.cat = key;
+    btn.title = cat.label;
+    btn.textContent = cat.label;
+    moodCats.appendChild(btn);
   });
+  // 默认渲染第一个分类
+  renderMoodGrid('faces');
+
+  let currentMoodCat = 'faces';
+
+  // 点击表情按钮，切换面板显示
+  moodTrigger.addEventListener('click', (e) => {
+    e.stopPropagation();
+    moodPanel.classList.toggle('show');
+    if (moodPanel.classList.contains('show')) renderMoodGrid(currentMoodCat);
+  });
+
+  // 切换分类
+  moodCats.addEventListener('click', (e) => {
+    const btn = e.target.closest('.mood-cat');
+    if (!btn) return;
+    moodCats.querySelectorAll('.mood-cat').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentMoodCat = btn.dataset.cat;
+    renderMoodGrid(currentMoodCat);
+  });
+
+  // 点击面板外关闭
+  document.addEventListener('click', (e) => {
+    if (!moodPicker.contains(e.target)) moodPanel.classList.remove('show');
+  });
+
+  // 表情面板渲染函数
+  function renderMoodGrid(catKey) {
+    moodGrid.innerHTML = '';
+    const cat = MOOD_CATEGORIES[catKey];
+    if (!cat) return;
+    cat.emojis.forEach(emoji => {
+      const btn = document.createElement('button');
+      btn.className = 'mood-item' + (emoji === currentMood ? ' selected' : '');
+      btn.textContent = emoji;
+      btn.title = emoji;
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        selectMood(emoji);
+      });
+      moodGrid.appendChild(btn);
+    });
+  }
+
+  // 选中表情：插入输入框 + 记录心情 + 关闭面板
+  function selectMood(emoji) {
+    currentMood = emoji;
+    moodTrigger.textContent = emoji;
+    moodPanel.classList.remove('show');
+    // 将表情插入输入框光标位置
+    const textarea = entryText;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    textarea.value = textarea.value.substring(0, start) + emoji + textarea.value.substring(end);
+    textarea.focus();
+    textarea.setSelectionRange(start + emoji.length, start + emoji.length);
+    // 触发 input 事件，让文本区域自动调整高度
+    textarea.dispatchEvent(new Event('input'));
+  }
 
   // 日期选择器
   targetDateInput.value = getTodayStr();
@@ -813,8 +915,7 @@ async function submitEntry() {
     targetDateInput.value = getTodayStr();
     targetDateInput.classList.remove('is-backdated');
     submitBtn.textContent = '✏️ 记录'; submitBtn.disabled = false;
-    moodSelector.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
-    moodSelector.querySelector('[data-mood="😐"]').classList.add('selected');
+    moodTrigger.textContent = '😐';
     renderImagePreviews(); renderAudioPreview();
     entryText.style.height = 'auto';
     showToast('✅ 记录已保存', 'success');
