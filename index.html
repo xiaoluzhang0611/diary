@@ -146,17 +146,18 @@ body{
 .mood-trigger{transition:var(--transition)}
 .mood-trigger:hover{transform:scale(1.15)}
 .mood-panel{
-  position:absolute;left:50%;z-index:100;
-  width:320px;max-width:calc(100vw - 48px);transform:translateX(-50%);
+  position:fixed;left:0;top:0;z-index:1000;
+  width:320px;max-width:calc(100vw - 48px);max-height:calc(100vh - 24px);
   background:var(--card-bg);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);
-  padding:10px;display:none;box-sizing:border-box
+  padding:10px;display:none;box-sizing:border-box;
+  flex-direction:column
 }
-/* 默认向下展开；空间不足时通过 JS 切换为向上 */
-.mood-panel.down{top:calc(100% + 8px);bottom:auto;animation:popInDown .15s ease}
-.mood-panel.up{bottom:calc(100% + 8px);top:auto;animation:popInUp .15s ease}
-.mood-panel.show{display:block}
-@keyframes popInDown{from{opacity:0;transform:translateX(-50%) translateY(-8px) scale(.96)}to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
-@keyframes popInUp{from{opacity:0;transform:translateX(-50%) translateY(8px) scale(.96)}to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
+/* 展开方向仅控制动画 */
+.mood-panel.down{animation:popInDown .15s ease}
+.mood-panel.up{animation:popInUp .15s ease}
+.mood-panel.show{display:flex}
+@keyframes popInDown{from{opacity:0;transform:translateY(-8px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes popInUp{from{opacity:0;transform:translateY(8px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
 .mood-cats{
   display:flex;gap:2px;margin-bottom:8px;overflow-x:auto;padding-bottom:4px;
   -webkit-overflow-scrolling:touch
@@ -170,7 +171,7 @@ body{
 .mood-cat.active{background:var(--accent-light);box-shadow:inset 0 0 0 1.5px var(--accent)}
 .mood-grid{
   display:grid;grid-template-columns:repeat(8,1fr);gap:2px;
-  max-height:180px;overflow-y:auto;-webkit-overflow-scrolling:touch
+  flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;min-height:0
 }
 .mood-item{
   font-size:22px;padding:6px 0;border:none;background:transparent;cursor:pointer;border-radius:8px;
@@ -654,18 +655,48 @@ function initDiaryApp() {
 
   let currentMoodCat = 'faces';
 
-  // 根据屏幕空间决定表情面板向上还是向下展开
+  // 根据按钮在视口中的位置，计算面板 fixed 坐标，确保不超出屏幕四边
   function positionMoodPanel() {
     const rect = moodTrigger.getBoundingClientRect();
-    const panelHeight = 260; // 面板展开后的大概高度
-    const spaceAbove = rect.top;
-    const spaceBelow = window.innerHeight - rect.bottom;
+    const safe = 12;
+    const gap = 8;
+    const panelW = Math.min(320, window.innerWidth - safe * 2);
+    const panelH = 260; // 面板理想高度
+
+    // 水平居中，限制在安全区域内
+    let left = rect.left + rect.width / 2 - panelW / 2;
+    left = Math.max(safe, Math.min(window.innerWidth - panelW - safe, left));
+
+    const spaceBelow = window.innerHeight - rect.bottom - safe;
+    const spaceAbove = rect.top - safe;
+
     moodPanel.classList.remove('up', 'down');
-    // 上方空间不够且下方更宽敞时向下展开，否则向上
-    if (spaceAbove < panelHeight && spaceBelow > spaceAbove) {
+    moodPanel.style.width = panelW + 'px';
+    moodPanel.style.left = left + 'px';
+    moodPanel.style.maxHeight = '';
+    moodPanel.style.bottom = 'auto';
+
+    if (spaceBelow >= panelH) {
+      // 下方空间充足，向下展开
       moodPanel.classList.add('down');
+      moodPanel.style.top = (rect.bottom + gap) + 'px';
+    } else if (spaceAbove >= panelH) {
+      const top = rect.top - gap - panelH;
+      if (top >= safe) {
+        // 向上展开
+        moodPanel.classList.add('up');
+        moodPanel.style.top = top + 'px';
+      } else {
+        // 向上会超顶，改为向下并压缩高度
+        moodPanel.classList.add('down');
+        moodPanel.style.top = (rect.bottom + gap) + 'px';
+        moodPanel.style.maxHeight = Math.max(140, spaceBelow) + 'px';
+      }
     } else {
-      moodPanel.classList.add('up');
+      // 两边都不够，向下并压缩高度
+      moodPanel.classList.add('down');
+      moodPanel.style.top = (rect.bottom + gap) + 'px';
+      moodPanel.style.maxHeight = Math.max(140, spaceBelow) + 'px';
     }
   }
 
