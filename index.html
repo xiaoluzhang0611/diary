@@ -381,30 +381,34 @@ async function sha256(message) {
 // ==================== 认证逻辑 ====================
 let isFirstTimeSetup = true;
 
-async function checkIfSetup() {
-  const authBtn = document.getElementById('authBtn');
-  try {
-    const data = await sbGet('settings', 'select=value&key=eq.master_password');
-    if (data && data.length > 0 && data[0].value) {
-      isFirstTimeSetup = false;
-      document.getElementById('authTitle').textContent = '输入密码';
-      document.getElementById('authSubtitle').textContent = '请输入你的访问密码';
-      document.getElementById('authBtn').textContent = '解锁日记本';
-      document.getElementById('pwdConfirmInput').style.display = 'none';
-    } else {
-      isFirstTimeSetup = true;
-      document.getElementById('authTitle').textContent = '设置访问密码';
-      document.getElementById('authSubtitle').textContent = '首次使用，请设置一个密码保护你的日记';
-      document.getElementById('authBtn').textContent = '设置密码';
-      document.getElementById('pwdConfirmInput').style.display = 'block';
-    }
-  } catch (e) {
-    console.error('检查设置状态:', e);
-    isFirstTimeSetup = true;
+// 根据是否已设置密码渲染界面
+function applyAuthState(hasPwd) {
+  isFirstTimeSetup = !hasPwd;
+  if (hasPwd) {
+    document.getElementById('authTitle').textContent = '输入密码';
+    document.getElementById('authSubtitle').textContent = '请输入你的访问密码';
+    document.getElementById('authBtn').textContent = '解锁日记本';
+    document.getElementById('pwdConfirmInput').style.display = 'none';
+  } else {
     document.getElementById('authTitle').textContent = '设置访问密码';
     document.getElementById('authSubtitle').textContent = '首次使用，请设置一个密码保护你的日记';
     document.getElementById('authBtn').textContent = '设置密码';
     document.getElementById('pwdConfirmInput').style.display = 'block';
+  }
+}
+
+async function checkIfSetup() {
+  const authBtn = document.getElementById('authBtn');
+  try {
+    const data = await sbGet('settings', 'select=value&key=eq.master_password');
+    const hasPwd = data && data.length > 0 && data[0].value;
+    // 缓存密码状态，下次打开立即显示正确界面
+    localStorage.setItem('diary_has_pwd', hasPwd ? '1' : '0');
+    applyAuthState(hasPwd);
+  } catch (e) {
+    console.error('检查设置状态:', e);
+    // 查询失败时用本地缓存兜底，避免误显示"设置密码"
+    applyAuthState(localStorage.getItem('diary_has_pwd') === '1');
   }
   authBtn.disabled = false;
 }
@@ -417,12 +421,21 @@ function showAuthPage() {
   document.getElementById('authError').textContent = '';
   document.getElementById('pwdInput').value = '';
   document.getElementById('pwdConfirmInput').value = '';
-  // 先显示默认状态（首次设置），后台检查是否已有密码
-  document.getElementById('authTitle').textContent = '设置访问密码';
-  document.getElementById('authSubtitle').textContent = '首次使用，请设置一个密码保护你的日记';
-  document.getElementById('authBtn').textContent = '连接中...';
-  document.getElementById('authBtn').disabled = true;
-  document.getElementById('pwdConfirmInput').style.display = 'block';
+
+  // 先读本地缓存的密码状态立即渲染，避免闪烁到"设置访问密码"
+  const cachedHasPwd = localStorage.getItem('diary_has_pwd');
+  if (cachedHasPwd === '1') {
+    applyAuthState(true);
+  } else if (cachedHasPwd === '0') {
+    applyAuthState(false);
+  } else {
+    // 没有缓存，显示中性状态，等查询结果
+    document.getElementById('authTitle').textContent = '正在检查...';
+    document.getElementById('authSubtitle').textContent = '正在连接日记本';
+    document.getElementById('authBtn').textContent = '连接中...';
+    document.getElementById('authBtn').disabled = true;
+    document.getElementById('pwdConfirmInput').style.display = 'block';
+  }
   // 先检查本地是否有12小时内的登录凭证
   checkAutoLogin();
 }
@@ -488,6 +501,8 @@ document.getElementById('authBtn').addEventListener('click', async () => {
 
       // 保存密码哈希到 Supabase
       await sbPost('settings', { key: 'master_password', value: pwdHash });
+      // 同步缓存密码状态
+      localStorage.setItem('diary_has_pwd', '1');
 
       isLoggedIn = true;
       saveAuthToken(pwdHash);
