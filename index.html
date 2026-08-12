@@ -1147,7 +1147,7 @@ function escapeJs(str) {
 
 function renderEntryCard(entry) {
   let card = `<div class="entry-card" data-id="${entry.id}" data-entryid="${entry.id}">
-    <div class="entry-time"><span>🕐 ${entry.time}</span><span>${entry.mood}</span></div>
+    <div class="entry-time"><span>🕐 ${entry.time}</span></div>
     <button class="entry-edit" data-edit="${entry.id}">✏️</button>
     <button class="entry-delete" data-delete="${entry.id}">🗑️</button>`;
   if (entry.text) card += `<div class="entry-text" data-edit-text="${entry.id}">${escapeHtml(entry.text)}</div>`;
@@ -1245,6 +1245,62 @@ async function renderSummary() {
   summaryContent.innerHTML = html;
 }
 
+// 从文本中提取所有 emoji（用于按正文中实际使用的表情统计心情）
+function extractEmojis(text) {
+  try {
+    return (text.match(/\p{Extended_Pictographic}/gu)) || [];
+  } catch (e) {
+    // 旧内核不支持 Unicode 属性转义时，退化为常见 emoji 区段匹配
+    return (text.match(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}\u{2705}]/gu)) || [];
+  }
+}
+
+// WMO 天气代码 → 中文描述
+const WEATHER_CODES = {
+  0: '☀️ 晴', 1: '🌤️ 基本晴朗', 2: '⛅ 局部多云', 3: '☁️ 阴',
+  45: '🌫️ 雾', 48: '🌫️ 雾凇',
+  51: '🌦️ 毛毛雨', 53: '🌦️ 毛毛雨', 55: '🌦️ 毛毛雨',
+  56: '🌧️ 冻毛毛雨', 57: '🌧️ 冻毛毛雨',
+  61: '🌧️ 小雨', 63: '🌧️ 中雨', 65: '🌧️ 大雨',
+  66: '🌧️ 冻雨', 67: '🌧️ 冻雨',
+  71: '🌨️ 小雪', 73: '🌨️ 中雪', 75: '❄️ 大雪',
+  77: '🌨️ 雪粒',
+  80: '🌦️ 阵雨', 81: '🌧️ 强阵雨', 82: '⛈️ 暴雨',
+  85: '🌨️ 阵雪', 86: '❄️ 强阵雪',
+  95: '⛈️ 雷暴', 96: '⛈️ 雷暴伴冰雹', 99: '⛈️ 雷暴伴冰雹'
+};
+
+// 尝试获取今日天气（基于当前定位；定位失败/超时/拒绝则返回 null，不加入总结）
+async function fetchTodayWeather() {
+  if (!navigator.geolocation) return null;
+  return new Promise((resolve) => {
+    let done = false;
+    const finish = (v) => { if (!done) { done = true; resolve(v); } };
+    const timer = setTimeout(() => finish(null), 8000);
+    try {
+      navigator.geolocation.getCurrentPosition(async (pos) => {
+        clearTimeout(timer);
+        try {
+          const { latitude, longitude } = pos.coords;
+          const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude.toFixed(4)}&longitude=${longitude.toFixed(4)}&current=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=1`;
+          const r = await fetch(url);
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          const data = await r.json();
+          if (!data || !data.daily) return finish(null);
+          const code = data.daily.weather_code[0];
+          const tempMin = Math.round(data.daily.temperature_2m_min[0]);
+          const tempMax = Math.round(data.daily.temperature_2m_max[0]);
+          finish({ text: `${WEATHER_CODES[code] || '未知天气'}，气温 ${tempMin}~${tempMax}°C` });
+        } catch (e) {
+          finish(null);
+        }
+      }, () => { clearTimeout(timer); finish(null); }, { timeout: 8000, maximumAge: 600000 });
+    } catch (e) {
+      finish(null);
+    }
+  });
+}
+
 async function generateTodaySummary() {
   await generateSummaryForDate(getTodayStr());
   showToast('✨ 今日日记总结已生成！', 'success');
@@ -1258,9 +1314,15 @@ async function generateSummaryForDate(dateStr, silent = false) {
   const imageCount = entries.filter(e => e.images && e.images.length > 0).length;
   const audioCount = entries.filter(e => e.audio).length;
 
-  const moodMap = {};
-  entries.forEach(e => { moodMap[e.mood] = (moodMap[e.mood]||0)+1; });
-  const dominantMood = Object.entries(moodMap).sort((a,b) => b[1]-a[1])[0][0];
+  // 根据日记正文中实际使用的表情数量统计整体心情（不再使用不可靠的 mood 字段）
+  const emojiCount = {};
+  entries.forEach(e => {
+    if (!e.text) return;
+    const matches = extractEmojis(e.text);
+    matches.forEach(em => { emojiCount[em] = (emojiCount[em]||0) + 1; });
+  });
+  const moodPairs = Object.entries(emojiCount).sort((a,b) => b[1]-a[1]);
+  const dominantMood = moodPairs.length ? moodPairs[0][0] : null;
 
   const timeSlots = { morning:[], noon:[], afternoon:[], evening:[], night:[] };
   entries.forEach(e => {
@@ -1280,7 +1342,18 @@ async function generateSummaryForDate(dateStr, silent = false) {
 
   const moodLabel = {'😊':'开心','😐':'平静','😢':'有些难过','😡':'有点生气','🤩':'非常兴奋'};
   let summary = `${dateLabel}\n\n`;
-  summary += `整体心情偏向${moodLabel[dominantMood]||dominantMood}，共 ${entries.length} 条记录：${textCount} 段文字、${imageCount} 张图片、${audioCount} 条语音。\n\n`;
+  // 尝试获取今日天气（定位失败则自动跳过，不影响总结生成）
+  const weather = await fetchTodayWeather();
+  if (weather) {
+    summary += `今日天气：${weather.text}。\n\n`;
+  }
+  const statsLine = `共 ${entries.length} 条记录：${textCount} 段文字、${imageCount} 张图片、${audioCount} 条语音。`;
+  if (dominantMood) {
+    const label = moodLabel[dominantMood] ? `（${moodLabel[dominantMood]}）` : '';
+    summary += `整体心情偏向 ${dominantMood}${label}，${statsLine}\n\n`;
+  } else {
+    summary += `${statsLine}\n\n`;
+  }
 
   const slotLabels = {morning:'🌅 清晨',noon:'☀️ 中午',afternoon:'🌤️ 下午',evening:'🌆 傍晚',night:'🌙 夜晚'};
   for (const [slot, slotEntries] of Object.entries(timeSlots)) {
@@ -1291,7 +1364,6 @@ async function generateSummaryForDate(dateStr, silent = false) {
       if (e.text) line += `"${e.text.length>60?e.text.substring(0,60)+'...':e.text}"`;
       if (e.images&&e.images.length) line += ` [${e.images.length}张图片]`;
       if (e.audio) line += ' [语音]';
-      line += ` ${e.mood}`;
       summary += line + '\n';
     });
     summary += '\n';
