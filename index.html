@@ -852,6 +852,7 @@ function initDiaryApp() {
   setInterval(checkAutoGenerate, 60000);
 
   renderTimeline();
+  updateGenButtonLabel();
   checkAutoGenerate();
 }
 
@@ -1238,11 +1239,17 @@ async function renderSummary() {
   }
   const summaries = entries.filter(e => e.type === 'summary').sort((a, b) => b.id - a.id);
 
+  // 根据今日是否已生成总结，动态更新顶部按钮文案
+  const genBtn = document.getElementById('genSummaryBtn');
+  if (genBtn) {
+    const hasToday = summaries.some(s => s.date === getTodayStr());
+    genBtn.textContent = hasToday ? '🔄 重新生成今日总结' : '✨ 生成今日日记总结';
+  }
+
   if (summaries.length === 0) {
     summaryContent.innerHTML = `
       <div class="empty-state"><div class="icon">📔</div><p>还没有生成的日记总结</p>
-      <p class="sub">记录足够多后，点击生成每日总结</p></div>
-      <div class="generate-area"><button class="btn btn-primary generate-btn" onclick="window.generateTodaySummary()">✨ 生成今日日记总结</button></div>`;
+      <p class="sub">记录足够多后，点击上方"生成今日日记总结"按钮</p></div>`;
     return;
   }
 
