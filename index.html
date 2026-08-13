@@ -1306,7 +1306,15 @@ async function generateTodaySummary() {
   showToast('✨ 今日日记总结已生成！', 'success');
 }
 
-async function generateSummaryForDate(dateStr, silent = false) {
+// 生成总结串行队列：防止手动点击与自动生成并发触发，导致同一天生成多份
+let summaryQueue = Promise.resolve();
+function generateSummaryForDate(dateStr, silent = false) {
+  const task = summaryQueue.then(() => doGenerateSummary(dateStr, silent));
+  summaryQueue = task.then(() => {}, () => {});
+  return task;
+}
+
+async function doGenerateSummary(dateStr, silent = false) {
   const entries = await cloudGetEntriesByDate(dateStr);
   if (entries.length === 0) return;
 
@@ -1373,10 +1381,12 @@ async function generateSummaryForDate(dateStr, silent = false) {
   else if (entries.length <= 5) summary += '平凡而充实的一天，好好休息，明天会更好。';
   else summary += '非常充实的一天！记录了这么多珍贵的瞬间，真棒！';
 
-  // 删除旧总结
+  // 删除当天所有旧总结（一次性清干净，防止残留重复）
   const allEntries = await cloudGetAllEntries();
-  const existingSummary = allEntries.find(e => e.type==='summary' && e.date===dateStr);
-  if (existingSummary) await cloudDeleteEntry(existingSummary.id);
+  const oldSummaries = allEntries.filter(e => e.type === 'summary' && e.date === dateStr);
+  for (const s of oldSummaries) {
+    await cloudDeleteEntry(s.id);
+  }
 
   await cloudAddEntry({
     id: Date.now(), date: dateStr, time: '23:30',
