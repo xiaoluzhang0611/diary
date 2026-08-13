@@ -260,6 +260,14 @@ body{
 .empty-state .icon{font-size:48px;margin-bottom:12px}
 .empty-state p{font-size:15px;margin-bottom:4px}
 .empty-state .sub{font-size:13px;opacity:.7}
+/* ===== 总结生成栏（固定在标签页下方，始终可见） ===== */
+.summary-bar{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  background:var(--card-bg);border-radius:var(--radius);padding:10px 14px;
+  margin-bottom:16px;box-shadow:var(--shadow-sm);border:1px solid var(--border);flex-wrap:wrap
+}
+.summary-bar .generate-btn{padding:10px 20px;font-size:14px}
+.summary-bar .auto-info{font-size:11px;color:var(--text-light);margin:0}
 .generate-area{text-align:center;padding:16px 0}
 .generate-btn{padding:12px 28px;font-size:15px}
 .auto-info{font-size:12px;color:var(--text-light);margin-top:8px}
@@ -355,6 +363,10 @@ body{
     <div class="tabs">
       <button class="tab active" data-tab="timeline">📋 时间线</button>
       <button class="tab" data-tab="summary">📝 日记总结</button>
+    </div>
+    <div class="summary-bar">
+      <button class="btn btn-primary generate-btn" id="genSummaryBtn">✨ 生成今日日记总结</button>
+      <div class="auto-info">💡 发布新内容后点此更新 · 每晚 23:30 自动生成</div>
     </div>
     <div id="timelineContent"></div>
     <div id="summaryContent" style="display:none"></div>
@@ -817,6 +829,17 @@ function initDiaryApp() {
     });
   });
 
+  // 顶部生成总结按钮：点击后生成并自动切换到总结页
+  document.getElementById('genSummaryBtn').addEventListener('click', async () => {
+    const summaryTab = document.querySelector('.tab[data-tab="summary"]');
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    summaryTab.classList.add('active');
+    currentTab = 'summary';
+    timelineContent.style.display = 'none';
+    summaryContent.style.display = 'block';
+    await generateTodaySummary();
+  });
+
   // 快捷键
   document.addEventListener('keydown', (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
@@ -1236,12 +1259,6 @@ async function renderSummary() {
     </div>`;
   });
 
-  const todaySummary = summaries.find(s => s.date === getTodayStr());
-  html += `<div class="generate-area">
-    <button class="btn btn-primary generate-btn" onclick="window.generateTodaySummary()">${todaySummary ? '🔄 重新生成今日总结' : '✨ 生成今日日记总结'}</button>
-    <div class="auto-info">💡 发布新内容后点此更新总结 · 每晚 23:30 也会自动生成</div>
-  </div>`;
-
   summaryContent.innerHTML = html;
 }
 
@@ -1302,7 +1319,13 @@ async function fetchTodayWeather() {
 }
 
 async function generateTodaySummary() {
-  await generateSummaryForDate(getTodayStr());
+  const today = getTodayStr();
+  const todayEntries = await cloudGetEntriesByDate(today);
+  if (todayEntries.length === 0) {
+    showToast('今天还没有任何记录，先写下点什么吧', 'error');
+    return;
+  }
+  await generateSummaryForDate(today);
   showToast('✨ 今日日记总结已生成！', 'success');
 }
 
