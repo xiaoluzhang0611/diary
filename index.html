@@ -848,7 +848,8 @@ function initDiaryApp() {
     }
   });
 
-  // 自动生成检查
+  // 自动生成检查：登录后立即补漏一次（避免干等 60 秒），再进入每分钟轮询
+  checkAutoGenerate();
   setInterval(checkAutoGenerate, 60000);
 
   renderTimeline();
