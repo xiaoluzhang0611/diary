@@ -1295,35 +1295,91 @@ const WEATHER_CODES = {
   95: '雷暴', 96: '雷暴伴冰雹', 99: '雷暴伴冰雹'
 };
 
-// 尝试获取今日天气（基于当前定位；定位失败/超时/拒绝则返回 null，不加入总结）
-async function fetchTodayWeather() {
-  if (!navigator.geolocation) return null;
-  return new Promise((resolve) => {
-    let done = false;
-    const finish = (v) => { if (!done) { done = true; resolve(v); } };
-    const timer = setTimeout(() => finish(null), 8000);
+// 带超时的 fetch（防止网络卡死拖慢总结生成）
+async function fetchWithTimeout(url, ms = 6000) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), ms);
+  try {
+    return await fetch(url, { signal: ctrl.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// IP 定位获取坐标（无需用户授权，城市级精度；多个免费服务兜底）
+async function locateByIP() {
+  const services = [
+    { url: 'https://ipwho.is/', fmt: 'flat' },
+    { url: 'https://ipapi.co/json/', fmt: 'flat' },
+    { url: 'https://api.ip.sb/geoip', fmt: 'flat' },
+    { url: 'https://ipinfo.io/json', fmt: 'ipinfo' }
+  ];
+  for (const s of services) {
     try {
-      navigator.geolocation.getCurrentPosition(async (pos) => {
-        clearTimeout(timer);
-        try {
-          const { latitude, longitude } = pos.coords;
-          const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude.toFixed(4)}&longitude=${longitude.toFixed(4)}&current=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=1`;
-          const r = await fetch(url);
-          if (!r.ok) throw new Error('HTTP ' + r.status);
-          const data = await r.json();
-          if (!data || !data.daily) return finish(null);
+      const r = await fetchWithTimeout(s.url, 5000);
+      if (!r.ok) continue;
+      const d = await r.json();
+      let lat, lon;
+      if (s.fmt === 'ipinfo' && typeof d.loc === 'string') {
+        const parts = d.loc.split(',');
+        lat = parseFloat(parts[0]);
+        lon = parseFloat(parts[1]);
+      } else {
+        lat = parseFloat(d.latitude);
+        lon = parseFloat(d.longitude);
+      }
+      if (isFinite(lat) && isFinite(lon) && Math.abs(lat) <= 90 && Math.abs(lon) <= 180) {
+        return { latitude: lat, longitude: lon, city: d.city || '' };
+      }
+    } catch (e) { /* 换下一个服务 */ }
+  }
+  return null;
+}
+
+// 按目标日期获取天气（IP 定位，不依赖授权弹窗）：
+//  - 当天/最近 92 天内：用 open-meteo 预报接口的 past_days 历史数据
+//  - 更早的日期：兜底用 archive 历史天气接口
+async function fetchWeather(dateStr) {
+  const loc = await locateByIP();
+  if (!loc) return null;
+  const lat = loc.latitude.toFixed(4), lon = loc.longitude.toFixed(4);
+  const today = getTodayStr();
+
+  // 1) 预报接口 + past_days=92（一次覆盖今天和过去 92 天）
+  try {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto&past_days=92&forecast_days=1`;
+    const r = await fetchWithTimeout(url);
+    if (r.ok) {
+      const data = await r.json();
+      if (data && data.daily && Array.isArray(data.daily.time)) {
+        const idx = data.daily.time.indexOf(dateStr);
+        if (idx >= 0) {
+          const code = data.daily.weather_code[idx];
+          const tempMin = Math.round(data.daily.temperature_2m_min[idx]);
+          const tempMax = Math.round(data.daily.temperature_2m_max[idx]);
+          return { text: `${WEATHER_CODES[code] || '未知天气'}，气温 ${tempMin}~${tempMax}°C` };
+        }
+      }
+    }
+  } catch (e) { /* 走兜底 */ }
+
+  // 2) 兜底：archive 历史天气接口（仅过去日期）
+  if (dateStr < today) {
+    try {
+      const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${dateStr}&end_date=${dateStr}&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto`;
+      const r = await fetchWithTimeout(url);
+      if (r.ok) {
+        const data = await r.json();
+        if (data && data.daily && Array.isArray(data.daily.time) && data.daily.time.length) {
           const code = data.daily.weather_code[0];
           const tempMin = Math.round(data.daily.temperature_2m_min[0]);
           const tempMax = Math.round(data.daily.temperature_2m_max[0]);
-          finish({ text: `${WEATHER_CODES[code] || '未知天气'}，气温 ${tempMin}~${tempMax}°C` });
-        } catch (e) {
-          finish(null);
+          return { text: `${WEATHER_CODES[code] || '未知天气'}，气温 ${tempMin}~${tempMax}°C` };
         }
-      }, () => { clearTimeout(timer); finish(null); }, { timeout: 8000, maximumAge: 600000 });
-    } catch (e) {
-      finish(null);
-    }
-  });
+      }
+    } catch (e) { /* 无天气则不加入总结 */ }
+  }
+  return null;
 }
 
 async function generateTodaySummary() {
@@ -1381,8 +1437,8 @@ async function doGenerateSummary(dateStr, silent = false) {
 
   const moodLabel = {'😊':'开心','😐':'平静','😢':'有些难过','😡':'有点生气','🤩':'非常兴奋'};
   let summary = `${dateLabel}\n\n`;
-  // 尝试获取今日天气（定位失败则自动跳过，不影响总结生成）
-  const weather = await fetchTodayWeather();
+  // 获取该日期当天的天气（IP 定位无需授权；失败则自动跳过，不影响总结生成）
+  const weather = await fetchWeather(dateStr);
   if (weather) {
     summary += `今日天气：${weather.text}。\n\n`;
   }
